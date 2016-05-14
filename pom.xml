@@ -7,6 +7,7 @@
   <properties>
     <storm.version>1.0.1</storm.version>
     <cassandra.version>3.5</cassandra.version>
+    <cassandra.driver.version>3.0.0</cassandra.driver.version>
   </properties>
 
   <dependencies>
@@ -37,6 +38,18 @@
 		<artifactId>cassandra-all</artifactId>
 		<version>${cassandra.version}</version>
     </dependency>
+
+    <dependency>
+		<groupId>org.apache.cassandra</groupId>
+		<artifactId>cassandra-all</artifactId>
+		<version>${cassandra.version}</version>
+    </dependency>
+
+	<dependency>
+	    <groupId>com.datastax.cassandra</groupId>
+	    <artifactId>cassandra-driver-core</artifactId>
+	    <version>${cassandra.driver.version}</version>
+	</dependency>
     
     <!-- Testing -->
     <dependency>
