@@ -12,7 +12,8 @@
 		<slf4j.version>1.7.5</slf4j.version>
 		<slf4j_from_log4j.version>1.6.6</slf4j_from_log4j.version>
 		<logback.version>1.0.13</logback.version>
-
+		<jcommander.version>1.48</jcommander.version>
+		<configuration.version>1.10</configuration.version>
 	</properties>
 
 	<dependencies>
@@ -21,18 +22,6 @@
 			<artifactId>storm-core</artifactId>
 			<version>${storm.version}</version>
 			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.storm</groupId>
-			<artifactId>flux-core</artifactId>
-			<version>${storm.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.storm</groupId>
-			<artifactId>storm-kafka</artifactId>
-			<version>${storm.version}</version>
 		</dependency>
 
 		<!-- "all" library may not needed FYI http://mvnrepository.com/artifact/com.datastax.cassandra -->
@@ -66,6 +55,18 @@
 			<version>${slf4j_from_log4j.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.beust</groupId>
+			<artifactId>jcommander</artifactId>
+			<version>${jcommander.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>${configuration.version}</version>
+		</dependency>
+
 		<!-- Testing -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -85,15 +86,10 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.4.1</version>
-				<configuration>
-					<createDependencyReducedPom>true</createDependencyReducedPom>
-					<keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
-				</configuration>
+				<version>2.3</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -101,18 +97,13 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>org.apache.storm.flux.Flux</mainClass>
-								</transformer>
-							</transformers>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<keepDependenciesWithProvidedScope>false</keepDependenciesWithProvidedScope>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 		</plugins>
 	</build>
+	<packaging>ejb</packaging>
 </project>
