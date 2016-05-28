@@ -9,29 +9,29 @@ public class TopologySettings {
     @Parameter(names = "-help", help = true)
     protected boolean help = false;
 
-    @Parameter(names = "-local_mode", description = "Run the topology on local or remote mode",required=true)
+    @Parameter(names = "-local_mode", description = "Run the topology on local or remote mode")
     protected boolean localMode = true;
 
-    @Parameter(names = "-test_mode", description = "Test mode",required=true)
-    protected boolean testMode = false;
+    @Parameter(names = "-test_mode", description = "Test mode")
+    protected boolean testMode = true;
 
-    @Parameter(names = "-config_path", description = "Configuration path",required=true)
-    protected String configPath;
+    @Parameter(names = "-config_path", description = "Configuration path")
+    protected String configPath="/home/chrispat/Documents/workspace/DistributedSystems/src/main/resources/topology.conf";
 
-    @Parameter(names = "-debug", description = "Debug mode", required = false)
-    protected boolean debug = false;
+    @Parameter(names = "-debug", description = "Debug mode")
+    protected boolean debug = true;
 
-    @Parameter(names = "-keyspace", description = "Cassandra rule's keyspace", required= true)
-    protected String keyspace = "";
+    @Parameter(names = "-keyspace", description = "Cassandra rule's keyspace")
+    protected String keyspace = "rules";
 
 
-    @Parameter(names = "-table", description = "Cassandra rule's table", required= true)
-    protected String table = "";
+    @Parameter(names = "-table", description = "Cassandra rule's table")
+    protected String table = "aggregation_rules";
 
-    @Parameter(names = "-host", description = "Cassandra's hostname", required= true)
-    protected String chost = "";
+    @Parameter(names = "-host", description = "Cassandra's hostname")
+    protected String chost = "192.168.1.69";
 
-    @Parameter(names = "-sport", description = "Spout's Port", required= true)
+    @Parameter(names = "-sport", description = "Spout's Port")
     protected int sport = 6606;
     
     public boolean isHelp() {

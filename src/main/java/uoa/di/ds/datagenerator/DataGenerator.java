@@ -48,8 +48,7 @@ public class DataGenerator {
 	        sb.append('\n');
 	        for (int j=0; j<=num_rows;j++) {
 	        	Integer cpu = ThreadLocalRandom.current().nextInt(0, 100 + 1);  //%cpu
-	        	Float ram = (float) ThreadLocalRandom.current().nextDouble(1, 15) + ThreadLocalRandom.current().nextFloat();  //Ram in GB
-	        	ram = (float) (Math.round(ram * 10d) / 10d);
+	        	Integer ram = ThreadLocalRandom.current().nextInt(100, 4096);  //Ram in MB
 	        	Integer activeSessions = ThreadLocalRandom.current().nextInt(1, 10 + 1);  //Active sessions
 	        	Integer upTime = ThreadLocalRandom.current().nextInt(1, 1728000 + 1);  //Seconds uptime
 	        	Integer id = ThreadLocalRandom.current().nextInt(1, 200 + 1);  //200 IDs
@@ -57,7 +56,7 @@ public class DataGenerator {
 	        	String site = dg.sites[id % 3];
 	        	Integer temperature = ThreadLocalRandom.current().nextInt(25, 50 + 1);  // temperature
 	        	
-	        	Tuple<Integer,Float,Integer,Integer,Integer,String,String,Integer> tup = new Tuple<Integer,Float,Integer,Integer,Integer,String,String,Integer>
+	        	Tuple<Integer,Integer,Integer,Integer,Integer,String,String,Integer> tup = new Tuple<Integer,Integer,Integer,Integer,Integer,String,String,Integer>
 	        																						(cpu, ram, activeSessions, upTime, id, name, site, temperature);
 	        	
 	        	sb.append(tup.toCSVString());

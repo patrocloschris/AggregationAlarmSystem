@@ -19,6 +19,7 @@ import com.datastax.driver.core.Session;
 
 import uoa.di.ds.db.ConnectionManager;
 import uoa.di.ds.storm.bolt.AggregationBolt;
+import uoa.di.ds.storm.spout.RandomEventGeneratorSpout;
 import uoa.di.ds.storm.spout.TCPSpout;
 import uoa.di.ds.storm.utils.Cons;
 import uoa.di.ds.storm.utils.configuration.TopologyConfig;
@@ -49,7 +50,9 @@ public class TopologyRunner {
 
 		/* Initialize Event Spout into to topology */
 		LOG.info("Adding Spout =["+Cons.DefaultSpoutName+"]");
-		TCPSpout tcpSpout = new TCPSpout(Cons.LOCAL_ADDRS, settings.getSport());
+//		TCPSpout tcpSpout = new TCPSpout(Cons.LOCAL_ADDRS, settings.getSport());
+		RandomEventGeneratorSpout tcpSpout = new RandomEventGeneratorSpout(10);
+
 		builder.setSpout(Cons.DefaultSpoutName, tcpSpout,1);
 		
 		/*Open a connection to cassandra to retrieve rules*/
