@@ -53,6 +53,7 @@ public class TopologyConfig {
                 config.getInt(Cons.TLG_EXEC_RCV_BUF, 1024)); 
 	    stormConfig.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE, config.getInt(Cons.TLG_EXEC_SEND_BUF, 1024));   
 
+	    
 	    if(settings.isLocalMode()){
 	    	stormConfig.setMaxTaskParallelism(1);
 	    }
