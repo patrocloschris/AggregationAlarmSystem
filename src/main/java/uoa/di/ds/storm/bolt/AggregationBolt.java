@@ -22,7 +22,18 @@ public class AggregationBolt extends BaseRichBolt {
   Map<Integer, Integer> counts = new HashMap<Integer, Integer>();
 //For holding id and cpu_sum(total)
   Map<Integer, Integer> cpu_sum = new HashMap<Integer, Integer>();
-  OutputCollector _collector;
+  OutputCollector _collector; 
+  
+  private String field;
+  private String operation;
+  private int duration;
+  
+ public AggregationBolt(String field,String operation,int duration) {
+	 this.field = field;
+	 this.operation = operation;
+	 this.duration = duration;
+ }
+  
   
   @Override
   public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
