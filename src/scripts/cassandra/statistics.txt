@@ -1,0 +1,15 @@
+
+
+CREATE TABLE cpu_avg_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE cpu_top_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE cpu_bottom_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE ram_top_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE ram_bottom_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE upTime_top_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE activeSessions_top_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE activeSessions_bottom_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE activeSessions_sum_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE activeSessions_avg_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE temperature_avg_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE temperature_top_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
+CREATE TABLE temperature_bottom_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
