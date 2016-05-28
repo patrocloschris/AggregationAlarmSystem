@@ -1,5 +1,7 @@
 package uoa.di.ds.storm;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.storm.Config;
@@ -12,54 +14,81 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+
+import uoa.di.ds.db.ConnectionManager;
+import uoa.di.ds.storm.bolt.AggregationBolt;
+import uoa.di.ds.storm.spout.TCPSpout;
 import uoa.di.ds.storm.utils.Cons;
 import uoa.di.ds.storm.utils.configuration.TopologyConfig;
 
 public class TopologyRunner {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TopologyRunner.class);
-	
-	public static void main(String args[]){
-	
+	private static final Logger LOG = LoggerFactory.getLogger(TopologyRunner.class);
+
+	public static void main(String args[]) {
+
 		TopologySettings settings = TopologyConfig.validateInputParameters(args);
-		if(settings == null){
+		if (settings == null) {
 			LOG.error("Missmatching in input parameters");
 			return;
 		}
 
-		LOG.info("Starting topology initialization...");	    
-	    Configuration config = TopologyConfig.readConfigurationFile(settings.configPath);
-	    if(config==null){
-			LOG.error("Cannot read configuration file=[]",settings.configPath);
+		LOG.info("Starting topology initialization...");
+		Configuration config = TopologyConfig.readConfigurationFile(settings.configPath);
+		if (config == null) {
+			LOG.error("Cannot read configuration file=[]", settings.configPath);
 			return;
-	    }
-	    
-	    String topologyName = config.getString(Cons.TLG_NAME);
+		}
 
-	    Config stormConfig = TopologyConfig.constructStormConfig(config, settings);
+		/* Setup topology configuration*/
+		String topologyName = config.getString(Cons.TLG_NAME);
+		Config stormConfig = TopologyConfig.constructStormConfig(config, settings);
+		TopologyBuilder builder = new TopologyBuilder();
 
-	    
-        TopologyBuilder builder = new TopologyBuilder();
-        /*
-         * TODO setup topology pipeline
-         */
-		LOG.info("Starting topology deployment...");	    
-        LOG.info("Local mode set to: " + settings.isLocalMode());
-        
-        if (settings.isLocalMode()) {
-            LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology(topologyName, stormConfig, builder.createTopology());
-        } else {
-            try {
+		/* Initialize Event Spout into to topology */
+		LOG.info("Adding Spout =["+Cons.DefaultSpoutName+"]");
+		TCPSpout tcpSpout = new TCPSpout(Cons.LOCAL_ADDRS, settings.getSport());
+		builder.setSpout(Cons.DefaultSpoutName, tcpSpout,1);
+		
+		/*Open a connection to cassandra to retrieve rules*/
+		ConnectionManager.init(settings.getChost());
+		Session session = ConnectionManager.getInstance().getCluster().connect(settings.getKeyspace());
+		ResultSet results = session.execute("SELECT * FROM " + settings.getTable());
+
+		/*For every rule generate a bolt*/
+		ArrayList<String> streams = new ArrayList<String>();
+		for (Row row : results) {
+			String field = row.getString("field") == null ? "field" : row.getString("field");
+			String operation = row.getString("operation") == null ? "operation" : row.getString("operation");
+			int duration = row.getInt("duration") == 0 ? 10 : row.getInt("duration");
+			int nbolts = row.getInt("nbolts") == 0 ? 2 : row.getInt("nbolts");
+
+			AggregationBolt bolt = new AggregationBolt(field, operation, duration);
+			String boldID = Cons.DefaultSpoutName.concat(".").concat(field).concat("_").concat(operation);
+			streams.add(boldID);
+			LOG.info("Adding stream =["+boldID+"]");
+			builder.setBolt(boldID,bolt,nbolts).shuffleGrouping(Cons.DefaultSpoutName);
+		}
+
+		LOG.info("Starting topology deployment...");
+		LOG.info("Local mode set to: " + settings.isLocalMode());
+
+		if (settings.isLocalMode()) {
+			LocalCluster cluster = new LocalCluster();
+			cluster.submitTopology(topologyName, stormConfig, builder.createTopology());
+		} else {
+			try {
 				StormSubmitter.submitTopology(topologyName, stormConfig, builder.createTopology());
 			} catch (AlreadyAliveException | InvalidTopologyException | AuthorizationException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-        }
+		}
 
-	
 	}
-	
-	
+
 }
