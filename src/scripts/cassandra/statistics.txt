@@ -1,5 +1,5 @@
-
-
+CREATE KEYSPACE "statistics" WITH REPLICATION = { 'class' : 'SimpleStrategy' , 'replication_factor' :2 };
+CREATE KEYSPACE "statistics" WITH REPLICATION = { 'class' : 'SimpleStrategy' , 'replication_factor' :2 };
 CREATE TABLE cpu_avg_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
 CREATE TABLE cpu_top_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
 CREATE TABLE cpu_bottom_statistics (id int,name  text,site text,eventTime timestamp,  value float, duration int, PRIMARY KEY (id,eventTime));
