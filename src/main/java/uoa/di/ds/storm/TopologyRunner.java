@@ -1,7 +1,6 @@
 package uoa.di.ds.storm;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.storm.Config;
@@ -15,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 

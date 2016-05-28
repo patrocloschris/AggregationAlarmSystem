@@ -14,6 +14,16 @@ public class Cons {
 	
 	public static final String TUPLE_VAR_MSG = "message";
 	public static final String TUPLE_VAR_KEY = "key";
+	public static final String TUPLE_VAR_CPU = "cpu";
+	public static final String TUPLE_VAR_RAM = "ram";
+	public static final String TUPLE_VAR_ACTIVESESSIONS = "activeSessions";
+	public static final String TUPLE_VAR_UPTIME = "upTime";
+	public static final String TUPLE_VAR_ID = "id";
+	public static final String TUPLE_VAR_NAME = "name";
+	public static final String TUPLE_VAR_SITE = "site";
+	public static final String TUPLE_VAR_TEMPERATURE = "temperature";
+
+	
 	
 	public static final String LOCAL_ADDRS = "127.0.0.1";
 	
