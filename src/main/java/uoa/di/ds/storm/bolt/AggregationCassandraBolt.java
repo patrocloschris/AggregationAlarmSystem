@@ -25,6 +25,7 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 	@Override
 	public void execute(Tuple input) {
 		
+		
 	}
 
 	@Override
