@@ -41,9 +41,9 @@ public class TopologyConfig {
 	}
 
 	
-	public static Config constructStormConfig(Configuration config,TopologySettings settings){
+	public static Config constructStormConfig(Configuration config){
 	    Config stormConfig = new Config();
-	    stormConfig.setDebug(settings.isDebug());
+	    stormConfig.setDebug(config.getBoolean(Cons.TLG_DBG,true));
 	    stormConfig.setNumWorkers(config.getInt(Cons.TLG_WORKERS, 1));
 	    stormConfig.setMaxSpoutPending(config.getInt(Cons.TLG_MX_SPOUT, 1024));
 	    stormConfig.setMessageTimeoutSecs(config.getInt(Cons.TLG_MSG_TIMEOUT, 30));
@@ -53,8 +53,7 @@ public class TopologyConfig {
                 config.getInt(Cons.TLG_EXEC_RCV_BUF, 1024)); 
 	    stormConfig.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE, config.getInt(Cons.TLG_EXEC_SEND_BUF, 1024));   
 
-	    
-	    if(settings.isLocalMode()){
+	    if(config.getBoolean(Cons.TLG_LOCAL)){
 	    	stormConfig.setMaxTaskParallelism(1);
 	    }
 	    return stormConfig;

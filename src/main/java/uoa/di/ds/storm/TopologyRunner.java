@@ -20,7 +20,6 @@ import com.datastax.driver.core.Session;
 import uoa.di.ds.db.ConnectionManager;
 import uoa.di.ds.storm.bolt.AggregationBolt;
 import uoa.di.ds.storm.spout.RandomEventGeneratorSpout;
-import uoa.di.ds.storm.spout.TCPSpout;
 import uoa.di.ds.storm.utils.Cons;
 import uoa.di.ds.storm.utils.configuration.TopologyConfig;
 
@@ -37,15 +36,15 @@ public class TopologyRunner {
 		}
 
 		LOG.info("Starting topology initialization...");
-		Configuration config = TopologyConfig.readConfigurationFile(settings.configPath);
+		Configuration config = TopologyConfig.readConfigurationFile(settings.getConfigPath());
 		if (config == null) {
-			LOG.error("Cannot read configuration file=[]", settings.configPath);
+			LOG.error("Cannot read configuration file=[]", settings.getConfigPath());
 			return;
 		}
 
 		/* Setup topology configuration*/
 		String topologyName = config.getString(Cons.TLG_NAME);
-		Config stormConfig = TopologyConfig.constructStormConfig(config, settings);
+		Config stormConfig = TopologyConfig.constructStormConfig(config);
 		TopologyBuilder builder = new TopologyBuilder();
 
 		/* Initialize Event Spout into to topology */
@@ -56,9 +55,9 @@ public class TopologyRunner {
 		builder.setSpout(Cons.DefaultSpoutName, tcpSpout,1);
 		
 		/*Open a connection to cassandra to retrieve rules*/
-		ConnectionManager.init(settings.getChost());
-		Session session = ConnectionManager.getInstance().getCluster().connect(settings.getKeyspace());
-		ResultSet results = session.execute("SELECT * FROM " + settings.getTable());
+		ConnectionManager.init(config.getString(Cons.CASSANDRA_HOST));
+		Session session = ConnectionManager.getInstance().getCluster().connect(config.getString(Cons.CASSANDRA_R_KEYSPACE));
+		ResultSet results = session.execute("SELECT * FROM " + config.getString(Cons.CASSANDRA_R_TABLE));
 
 		/*For every rule generate a bolt*/
 		ArrayList<String> streams = new ArrayList<String>();
@@ -76,9 +75,9 @@ public class TopologyRunner {
 		}
 
 		LOG.info("Starting topology deployment...");
-		LOG.info("Local mode set to: " + settings.isLocalMode());
+		LOG.info("Local mode set to: " + config.getBoolean(Cons.TLG_LOCAL));
 
-		if (settings.isLocalMode()) {
+		if (config.getBoolean(Cons.TLG_LOCAL)) {
 			LocalCluster cluster = new LocalCluster();
 			cluster.submitTopology(topologyName, stormConfig, builder.createTopology());
 		} else {
