@@ -33,6 +33,9 @@ public class Cons {
 	public static final String TUPLE_VAR_EVENTTIME = "eventTime";
 	public static final String TUPLE_VAR_DURATION = "duration";
 	public static final String TUPLE_VAR_VALUE = "value";
+	public static final String TUPLE_VAR_FIELD = "field";
+	public static final String TUPLE_VAR_OPER = "operation";
+	
 	
 	public static final String LOCAL_ADDRS = "127.0.0.1";
 	

@@ -22,10 +22,9 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 
 	private static final long serialVersionUID = 1L;
 	
-	private String field;
-    private Map conf= null;
-    private TopologyContext context = null;
-    private OutputCollector collector = null;
+    private Map _conf= null;
+    private TopologyContext _context = null;
+    private OutputCollector _collector = null;
     private String cassandraHostname = null; 
     private boolean batchMode = false;
     private int batchSize = 10;
@@ -33,17 +32,16 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 	private Session session;
 	private String keyspace;
 	
-    public AggregationCassandraBolt(String field,String keyspace) {
+    public AggregationCassandraBolt(String keyspace) {
     	this.tupleList = new ArrayList<Tuple>();
-    	this.field = field;
     	this.keyspace = keyspace;
     }
     
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-	      this.conf = stormConf;
-	      this.context = context;
-	      this.collector = collector;
+	      this._conf = stormConf;
+	      this._context = context;
+	      this._collector = collector;
     	  ConnectionManager.init(cassandraHostname);
     	  session = ConnectionManager.getInstance().getCluster().connect(keyspace);
 	}
@@ -53,12 +51,13 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 		if(batchMode){
 			tupleList.add(input);
 			if(batchSize == tupleList.size()){
-				insertBatchToCassandra("TODO", tupleList);
+				insertBatchToCassandra( tupleList);
 				tupleList.clear();
 			}
 		} else {
-			insertToCassandra("TODO",input);
+			insertToCassandra(input);
 		}
+		_collector.ack(input);
 	}
 
 	@Override
@@ -78,8 +77,9 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 		this.batchSize = size;
 	}
 	
-	private void insertToCassandra(String table,Tuple tuple){
-		Statement statement = QueryBuilder.insertInto(table)
+	private void insertToCassandra(Tuple tuple){
+		Statement statement = QueryBuilder.insertInto(constructTableName(tuple.getStringByField(Cons.TUPLE_VAR_FIELD),
+				tuple.getStringByField(Cons.TUPLE_VAR_OPER)))
 		        .value("id",tuple.getIntegerByField(Cons.TUPLE_VAR_ID))
 		        .value("name", tuple.getStringByField(Cons.TUPLE_VAR_NAME))
 		        .value("site", tuple.getStringByField(Cons.TUPLE_VAR_SITE))
@@ -89,12 +89,13 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 		session.execute(statement);		
 	}
 
-	private void insertBatchToCassandra(String table,List<Tuple> tuples){
+	private void insertBatchToCassandra(List<Tuple> tuples){
 		
 		BatchStatement batch = new BatchStatement();
 
 		for(Tuple tuple: tuples){
-			Statement statement = QueryBuilder.insertInto(table)
+			Statement statement = QueryBuilder.insertInto(constructTableName(tuple.getStringByField(Cons.TUPLE_VAR_FIELD),
+					tuple.getStringByField(Cons.TUPLE_VAR_OPER)))
 			        .value("id",tuple.getIntegerByField(Cons.TUPLE_VAR_ID))
 			        .value("name", tuple.getStringByField(Cons.TUPLE_VAR_NAME))
 			        .value("site", tuple.getStringByField(Cons.TUPLE_VAR_SITE))
@@ -104,5 +105,9 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 			batch.add(statement);
 		}
 		session.equals(batch);
+	}
+	
+	private String constructTableName(String field,String operation){
+		return (field.toLowerCase()).concat("_").concat((operation.toLowerCase())).concat("_statistics");
 	}
 }
