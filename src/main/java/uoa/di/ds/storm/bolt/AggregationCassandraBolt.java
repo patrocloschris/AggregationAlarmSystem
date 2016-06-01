@@ -56,7 +56,7 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 				insertBatchToCassandra("TODO", tupleList);
 				tupleList.clear();
 			}
-		}else{
+		} else {
 			insertToCassandra("TODO",input);
 		}
 	}
