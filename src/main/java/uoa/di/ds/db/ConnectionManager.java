@@ -6,7 +6,7 @@ import com.datastax.driver.core.Cluster.Builder;
 public class ConnectionManager {
 
 	private static ConnectionManager instance = null;
-	private static Object lock;
+	private static Object lock = new Object();
 	private Cluster cluster = null;
 
 	private ConnectionManager(String host,String clusterName) {
