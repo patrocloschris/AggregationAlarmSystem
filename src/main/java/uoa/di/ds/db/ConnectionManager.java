@@ -1,6 +1,7 @@
 package uoa.di.ds.db;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Cluster.Builder;
 
 public class ConnectionManager {
 
@@ -9,7 +10,12 @@ public class ConnectionManager {
 	private Cluster cluster = null;
 
 	private ConnectionManager(String host) {
-		cluster = Cluster.builder().addContactPoint(host).build();
+		Builder clusterBulder = Cluster.builder();
+		String possibleHosts[] = host.split(",");
+		for(String h  : possibleHosts){
+			clusterBulder.addContactPoint(h);
+		}
+		cluster = clusterBulder.build();
 	}
 
 	public static ConnectionManager getInstance() {
