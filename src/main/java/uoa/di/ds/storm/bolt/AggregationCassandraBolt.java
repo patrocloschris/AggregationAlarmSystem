@@ -9,16 +9,22 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.esotericsoftware.minlog.Log;
 
 import uoa.di.ds.db.ConnectionManager;
 import uoa.di.ds.storm.utils.Cons;
 
 public class AggregationCassandraBolt extends BaseRichBolt{
+
+	private static final Logger LOG = LoggerFactory.getLogger(AggregationCassandraBolt.class);
 
 	private static final long serialVersionUID = 1L;
 	
@@ -36,6 +42,7 @@ public class AggregationCassandraBolt extends BaseRichBolt{
     public AggregationCassandraBolt(String keyspace) {
     	this.tupleList = new ArrayList<Tuple>();
     	this.keyspace = keyspace;
+    	LOG.info("Creating bolt for Keyspace=[{}]",keyspace);
     }
     
 	@Override
@@ -45,6 +52,7 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 	      this._collector = collector;
     	  ConnectionManager.init(cassandraHostname,clusterName);
     	  session = ConnectionManager.getInstance().getCluster().connect(keyspace);
+    	  LOG.info("Preparing bolt....Connection for DB was=[{}]",session.getLoggedKeyspace());
 	}
 
 	@Override
@@ -91,7 +99,8 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 		        .value("eventTime", tuple.getLongByField(Cons.TUPLE_VAR_EVENTTIME))
 		        .value("value", tuple.getFloatByField(Cons.TUPLE_VAR_VALUE))
 		        .value("duration", tuple.getIntegerByField(Cons.TUPLE_VAR_DURATION));
-		session.execute(statement);		
+		session.execute(statement);
+		LOG.info("Insert into DB tuple=[{}]",tuple);
 	}
 
 	private void insertBatchToCassandra(List<Tuple> tuples){
@@ -109,7 +118,8 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 			        .value("duration", tuple.getIntegerByField(Cons.TUPLE_VAR_DURATION));
 			batch.add(statement);
 		}
-		session.equals(batch);
+		session.execute(batch);
+		LOG.info("Insert into DB multi tuples");
 	}
 	
 	private String constructTableName(String field,String operation){

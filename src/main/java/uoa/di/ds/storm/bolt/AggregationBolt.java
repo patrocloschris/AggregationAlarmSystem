@@ -25,7 +25,7 @@ import uoa.di.ds.storm.utils.Cons;
 //There are a variety of bolt types. In this case, we use BaseBasicBolt
 public class AggregationBolt extends BaseRichBolt {
 
-	private static final Logger LOG = LoggerFactory.getLogger(RandomEventGeneratorSpout.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AggregationBolt.class);
 	private static final long serialVersionUID = 1L;
 	
 	private Timer timer;

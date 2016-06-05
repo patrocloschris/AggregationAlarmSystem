@@ -9,6 +9,7 @@ import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.AlreadyAliveException;
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.InvalidTopologyException;
+import org.apache.storm.topology.BoltDeclarer;
 import org.apache.storm.topology.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import com.datastax.driver.core.Session;
 
 import uoa.di.ds.db.ConnectionManager;
 import uoa.di.ds.storm.bolt.AggregationBolt;
+import uoa.di.ds.storm.bolt.AggregationCassandraBolt;
 import uoa.di.ds.storm.spout.RandomEventGeneratorSpout;
 import uoa.di.ds.storm.utils.Cons;
 import uoa.di.ds.storm.utils.configuration.TopologyConfig;
@@ -73,7 +75,20 @@ public class TopologyRunner {
 			LOG.info("Adding stream =["+boldID+"]");
 			builder.setBolt(boldID,bolt,nbolts).shuffleGrouping(Cons.DefaultSpoutName2);
 		}
-
+		
+		/*Connecting CassandraAggregationBolt*/
+		AggregationCassandraBolt cassandraBolt = new AggregationCassandraBolt(config.getString(Cons.CASSANDRA_R_KEYSPACE));
+		cassandraBolt.withHostName(config.getString(Cons.CASSANDRA_HOST));
+		cassandraBolt.withClusterName(config.getString(Cons.CASSANDRA_CLUSTERNAME));
+		cassandraBolt.withBatchMode(config.getBoolean(Cons.CASSANDRA_A_BOLT_BATCH));
+		cassandraBolt.withBatchSize(config.getInt(Cons.CASSANDRA_A_BOLT_BATCH_SIZE,1));
+		LOG.info("Adding CassandraAggregation Bolt");
+		BoltDeclarer declarer = builder.setBolt(Cons.DefaultACassandraBoltName,cassandraBolt,config.getInt(Cons.CASSANDRA_A_BOLT_PARALLEL,2));
+		for(String stream : streams){
+			declarer.shuffleGrouping(Cons.DefaultACassandraBoltName, stream);
+		}
+		
+		
 		LOG.info("Starting topology deployment...");
 		LOG.info("Local mode set to: " + config.getBoolean(Cons.TLG_LOCAL));
 
