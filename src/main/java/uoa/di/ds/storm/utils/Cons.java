@@ -41,4 +41,7 @@ public class Cons {
 	public static final String LOCAL_ADDRS = "127.0.0.1";
 	
 	public static final String DefaultSpoutName = "tcpSpout";
+	public static final String DefaultSpoutName2 = "RandomGeneratorSpout";
+	public static final String DefaultBoltName = "bolt";
+
 }

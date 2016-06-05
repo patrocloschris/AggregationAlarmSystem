@@ -48,11 +48,11 @@ public class TopologyRunner {
 		TopologyBuilder builder = new TopologyBuilder();
 
 		/* Initialize Event Spout into to topology */
-		LOG.info("Adding Spout =["+Cons.DefaultSpoutName+"]");
+		LOG.info("Adding Spout =["+Cons.DefaultSpoutName2+"]");
 //		TCPSpout tcpSpout = new TCPSpout(Cons.LOCAL_ADDRS, settings.getSport());
-		RandomEventGeneratorSpout tcpSpout = new RandomEventGeneratorSpout(10);
+		RandomEventGeneratorSpout randomGeneratorSpout = new RandomEventGeneratorSpout(10);
 
-		builder.setSpout(Cons.DefaultSpoutName, tcpSpout,1);
+		builder.setSpout(Cons.DefaultSpoutName2, randomGeneratorSpout,1);
 		
 		/*Open a connection to cassandra to retrieve rules*/
 		ConnectionManager.init(config.getString(Cons.CASSANDRA_HOST),config.getString(Cons.CASSANDRA_CLUSTERNAME,null));
@@ -68,10 +68,10 @@ public class TopologyRunner {
 			int nbolts = row.getInt("nbolts") == 0 ? 2 : row.getInt("nbolts");
 
 			AggregationBolt bolt = new AggregationBolt(field, operation, duration);
-			String boldID = Cons.DefaultSpoutName.concat(".").concat(field).concat("_").concat(operation);
+			String boldID = Cons.DefaultBoltName.concat(".").concat(field).concat("_").concat(operation);
 			streams.add(boldID);
 			LOG.info("Adding stream =["+boldID+"]");
-			builder.setBolt(boldID,bolt,nbolts).shuffleGrouping(Cons.DefaultSpoutName);
+			builder.setBolt(boldID,bolt,nbolts).shuffleGrouping(Cons.DefaultSpoutName2);
 		}
 
 		LOG.info("Starting topology deployment...");
@@ -84,8 +84,7 @@ public class TopologyRunner {
 			try {
 				StormSubmitter.submitTopology(topologyName, stormConfig, builder.createTopology());
 			} catch (AlreadyAliveException | InvalidTopologyException | AuthorizationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.error("Error during topology submittion.\nError=[{}]",e.getMessage());
 			}
 		}
 

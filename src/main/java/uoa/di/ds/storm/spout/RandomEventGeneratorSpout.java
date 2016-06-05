@@ -9,10 +9,14 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uoa.di.ds.storm.utils.Cons;
 
 public class RandomEventGeneratorSpout extends BaseRichSpout {
+
+	private static final Logger LOG = LoggerFactory.getLogger(RandomEventGeneratorSpout.class);
 
 	private static final long serialVersionUID = 1L;
 	private int rate;
@@ -23,6 +27,7 @@ public class RandomEventGeneratorSpout extends BaseRichSpout {
 
 
 	public RandomEventGeneratorSpout(int rate) {
+		LOG.info("Creating Spout with generate rate=[{}]",rate);
 		this.rate = rate;
 	}
 	
@@ -32,10 +37,12 @@ public class RandomEventGeneratorSpout extends BaseRichSpout {
 		this._config = conf;
 		this._context = context;
 		this._collector = collector;
+		LOG.info("Preparing Spout...");
 	}
 
 	@Override
 	public void nextTuple() {
+		LOG.info("Submiting a Batch of tuples!");
         for (int j=0; j<=rate;j++) {
         	Integer cpu = ThreadLocalRandom.current().nextInt(0, 100 + 1);  //%cpu
         	Integer ram = ThreadLocalRandom.current().nextInt(100, 4096);  //Ram in MB

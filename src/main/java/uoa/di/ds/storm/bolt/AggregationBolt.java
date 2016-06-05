@@ -16,17 +16,21 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import uoa.di.ds.storm.spout.RandomEventGeneratorSpout;
 import uoa.di.ds.storm.utils.Cons;
 
 //There are a variety of bolt types. In this case, we use BaseBasicBolt
 public class AggregationBolt extends BaseRichBolt {
 
+	private static final Logger LOG = LoggerFactory.getLogger(RandomEventGeneratorSpout.class);
 	private static final long serialVersionUID = 1L;
 	
 	private Timer timer;
 	private Integer EMIT_TIMEFRAME = 10; // each 10 seconds (default)
-	
+	private String boltName;
 	//For holding router-id and counts(times appeared so-far)
 	Map<Integer, Integer> counts;
 	//For holding id and sum(total)
@@ -49,6 +53,8 @@ public class AggregationBolt extends BaseRichBolt {
 	 this.field = field;
 	 this.operation = operation;
 	 this.duration = duration;
+	 this.boltName=field.concat("_").concat(operation);
+	 LOG.info("Creating Bolt with field=[{}], operation=[{}], duration=[{}]",field,operation,duration);
  }
   
   
@@ -74,14 +80,15 @@ public class AggregationBolt extends BaseRichBolt {
     DateTime startAt = now.minuteOfHour().roundFloorCopy().plusSeconds(roundSeconds);
     
 	this.timer = new Timer();
-	this.timer.scheduleAtFixedRate(new EmitTask(sum, top, bottom, average, name, site, field, operation, duration, _collector), startAt.toDate(), EMIT_TIMEFRAME * 1000L);
+	this.timer.scheduleAtFixedRate(new EmitTask(this.boltName,sum, top, bottom, average, name, site, field, operation, duration, _collector), startAt.toDate(), EMIT_TIMEFRAME * 1000L);
+	 LOG.info("Preapating Bolt=[{}]",this.boltName);
   }
 
   //execute is called to process tuples
   @Override
   public void execute(Tuple tuple) {
 	  
-	System.out.println("TUPLE:" + tuple.toString()); 
+	LOG.info("BOLT=[{}]:Recieved tuple=>[{}]",this.boltName, tuple.toString()); 
 	  
 	if (field.equals("cpu")) {
 		if (operation.equals("AVG")) {
@@ -482,10 +489,11 @@ public class AggregationBolt extends BaseRichBolt {
 	  private final String field;
 	  private final String operation;
 	  private final Integer duration;
+	  private final String boltName;
 	  
 	  private final OutputCollector collector;
 	  
-	  public EmitTask(Map<Integer, Integer> sum, Map<Integer, Integer> top, Map<Integer, Integer> bottom, Integer average,  Map<Integer, String> name, Map<Integer, String> site, String field, String operation, Integer duration, OutputCollector collector) {
+	  public EmitTask(String boltName,Map<Integer, Integer> sum, Map<Integer, Integer> top, Map<Integer, Integer> bottom, Integer average,  Map<Integer, String> name, Map<Integer, String> site, String field, String operation, Integer duration, OutputCollector collector) {
 		  
 		  	this.sum = sum;
 		  	this.top = top;
@@ -501,11 +509,14 @@ public class AggregationBolt extends BaseRichBolt {
 		  	this.duration = duration;
 		  	
 		  	this.collector = collector;
+		  	this.boltName = boltName;
 	  }
 	  
 	  @Override
 	  public void run() {
-		  
+		LOG.info("BOLT=[{}]: Time to emit all values",this.boltName); 
+			  
+
 		  //Do we need sync here?
 		  if (this.field.equals("cpu") || this.field.equals("ram") || this.field.equals("temperature")) {
 			  
