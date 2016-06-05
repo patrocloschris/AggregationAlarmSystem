@@ -52,7 +52,7 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 	      this._collector = collector;
     	  ConnectionManager.init(cassandraHostname,clusterName);
     	  session = ConnectionManager.getInstance().getCluster().connect(keyspace);
-    	  LOG.info("Preparing bolt....Connection for DB was=[{}]",session.getLoggedKeyspace());
+    	  LOG.info("Preparing bolt....Connection on DB=[{}]",session.getLoggedKeyspace());
 	}
 
 	@Override
