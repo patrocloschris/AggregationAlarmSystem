@@ -55,7 +55,7 @@ public class TopologyRunner {
 		builder.setSpout(Cons.DefaultSpoutName, tcpSpout,1);
 		
 		/*Open a connection to cassandra to retrieve rules*/
-		ConnectionManager.init(config.getString(Cons.CASSANDRA_HOST));
+		ConnectionManager.init(config.getString(Cons.CASSANDRA_HOST),config.getString(Cons.CASSANDRA_CLUSTERNAME,null));
 		Session session = ConnectionManager.getInstance().getCluster().connect(config.getString(Cons.CASSANDRA_R_KEYSPACE));
 		ResultSet results = session.execute("SELECT * FROM " + config.getString(Cons.CASSANDRA_R_TABLE));
 

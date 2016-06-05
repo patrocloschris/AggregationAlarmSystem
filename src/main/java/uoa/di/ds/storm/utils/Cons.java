@@ -19,6 +19,7 @@ public class Cons {
 	public static final String CASSANDRA_R_KEYSPACE= "cassandra.rules.keyspace";
 	public static final String CASSANDRA_R_TABLE= "cassandra.rules.table";
 	public static final String CASSANDRA_S_KEYSPACE= "cassandra.statistics.keyspace";
+	public static final String CASSANDRA_CLUSTERNAME= "cassandra.cluster.name";
 	
 	public static final String TUPLE_VAR_MSG = "message";
 	public static final String TUPLE_VAR_KEY = "key";

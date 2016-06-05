@@ -25,7 +25,8 @@ public class AggregationCassandraBolt extends BaseRichBolt{
     private Map _conf= null;
     private TopologyContext _context = null;
     private OutputCollector _collector = null;
-    private String cassandraHostname = null; 
+    private String cassandraHostname = null;
+    private String clusterName=null;
     private boolean batchMode = false;
     private int batchSize = 10;
 	private ArrayList<Tuple> tupleList ;
@@ -42,7 +43,7 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 	      this._conf = stormConf;
 	      this._context = context;
 	      this._collector = collector;
-    	  ConnectionManager.init(cassandraHostname);
+    	  ConnectionManager.init(cassandraHostname,clusterName);
     	  session = ConnectionManager.getInstance().getCluster().connect(keyspace);
 	}
 
@@ -67,6 +68,10 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 	
 	public void withHostName(String name){
 		this.cassandraHostname = name;
+	}
+
+	public void withClusterName(String clusterName){
+		this.clusterName = clusterName;
 	}
 
 	public void withBatchMode(boolean mode){

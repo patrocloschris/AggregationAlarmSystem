@@ -9,11 +9,14 @@ public class ConnectionManager {
 	private static Object lock;
 	private Cluster cluster = null;
 
-	private ConnectionManager(String host) {
+	private ConnectionManager(String host,String clusterName) {
 		Builder clusterBulder = Cluster.builder();
 		String possibleHosts[] = host.split(",");
 		for(String h  : possibleHosts){
 			clusterBulder.addContactPoint(h);
+		}
+		if(clusterName!=null && clusterName.length()>0){
+			clusterBulder.withClusterName(clusterName);
 		}
 		cluster = clusterBulder.build();
 	}
@@ -22,10 +25,10 @@ public class ConnectionManager {
 		return instance;
 	}
 
-	public static void init(String host) {
+	public static void init(String host,String clusterName) {
 		synchronized (lock) {
 			if (instance == null) {
-				instance = new ConnectionManager(host);
+				instance = new ConnectionManager(host,clusterName);
 			}
 		}
 	}
