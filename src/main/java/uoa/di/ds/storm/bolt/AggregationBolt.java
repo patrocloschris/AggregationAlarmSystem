@@ -17,13 +17,15 @@ import org.apache.storm.tuple.Values;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import uoa.di.ds.storm.utils.Cons;
+
 //There are a variety of bolt types. In this case, we use BaseBasicBolt
 public class AggregationBolt extends BaseRichBolt {
 
 	private static final long serialVersionUID = 1L;
 	
 	private Timer timer;
-	private static final int EMIT_TIMEFRAME = 10; // each 10 seconds
+	private Integer EMIT_TIMEFRAME = 10; // each 10 seconds (default)
 	
 	//For holding router-id and counts(times appeared so-far)
 	Map<Integer, Integer> counts;
@@ -31,6 +33,8 @@ public class AggregationBolt extends BaseRichBolt {
 	Map<Integer, Integer> sum;
 	Map<Integer, Integer> top;
 	Map<Integer, Integer> bottom;
+	Map<Integer, String> name;
+	Map<Integer, String> site;
 	Integer average;
 	
 	
@@ -38,9 +42,10 @@ public class AggregationBolt extends BaseRichBolt {
   
 	private String field;
 	private String operation;
-	private int duration;
+	private Integer duration;
   
- public AggregationBolt(String field,String operation,int duration) {
+	
+ public AggregationBolt(String field,String operation, Integer duration) {
 	 this.field = field;
 	 this.operation = operation;
 	 this.duration = duration;
@@ -57,15 +62,19 @@ public class AggregationBolt extends BaseRichBolt {
     top    = Collections.synchronizedMap(new HashMap<Integer, Integer>());
     bottom = Collections.synchronizedMap(new HashMap<Integer, Integer>());
     
+    name = Collections.synchronizedMap(new HashMap<Integer, String>());
+    site = Collections.synchronizedMap(new HashMap<Integer, String>());
+    
     average = 0;
 
+    EMIT_TIMEFRAME = duration;
 	// Round the timestamp. ie: 2016-05-26T19:21:00.000Z
     DateTime now = new DateTime().withZone(DateTimeZone.UTC);
     int roundSeconds = ((now.getSecondOfMinute() / EMIT_TIMEFRAME) * EMIT_TIMEFRAME) + EMIT_TIMEFRAME;
     DateTime startAt = now.minuteOfHour().roundFloorCopy().plusSeconds(roundSeconds);
     
 	this.timer = new Timer();
-	this.timer.scheduleAtFixedRate(new EmitTask(sum, top, bottom, average, _collector), startAt.toDate(), EMIT_TIMEFRAME * 1000L);
+	this.timer.scheduleAtFixedRate(new EmitTask(sum, top, bottom, average, name, site, field, operation, duration, _collector), startAt.toDate(), EMIT_TIMEFRAME * 1000L);
   }
 
   //execute is called to process tuples
@@ -78,7 +87,18 @@ public class AggregationBolt extends BaseRichBolt {
 		if (operation.equals("AVG")) {
 			
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
+
+			
+			
 		    //Have we counted any already?
 		    Integer count = counts.get(id);
 		    if (count == null)
@@ -88,7 +108,7 @@ public class AggregationBolt extends BaseRichBolt {
 		    counts.put(id, count);
 		    
 		    Integer curr_cpu_sum = sum.get(id);
-		    Integer cpu = tuple.getInteger(0);
+		    Integer cpu = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
 		    
 		    if (curr_cpu_sum == null)
 		    	curr_cpu_sum = cpu;
@@ -101,8 +121,17 @@ public class AggregationBolt extends BaseRichBolt {
 		}
 		else if (operation.equals("TOP")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
-		    Integer cpu = tuple.getInteger(0);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
+			
+		    Integer cpu = tuple.getIntegerByField(Cons.TUPLE_VAR_CPU);
 		    
 		    Integer curr_top = top.get(id);
 		    
@@ -116,8 +145,17 @@ public class AggregationBolt extends BaseRichBolt {
 		}
 		else if (operation.equals("BOTTOM")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
-		    Integer cpu = tuple.getInteger(0);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
+			
+		    Integer cpu = tuple.getIntegerByField(Cons.TUPLE_VAR_CPU);
 		    
 		    Integer curr_bottom = bottom.get(id);
 		    
@@ -132,7 +170,15 @@ public class AggregationBolt extends BaseRichBolt {
 	else if (field.equals("ram")) {
 		if (operation.equals("AVG")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
 		    //Have we counted any already?
 		    Integer count = counts.get(id);
 		    if (count == null)
@@ -142,7 +188,7 @@ public class AggregationBolt extends BaseRichBolt {
 		    counts.put(id, count);
 		    
 		    Integer curr_ram_sum = sum.get(id);
-		    Integer ram = tuple.getInteger(1);
+		    Integer ram = tuple.getIntegerByField(Cons.TUPLE_VAR_RAM);
 		    
 		    if (curr_ram_sum == null)
 		    	curr_ram_sum = ram;
@@ -155,8 +201,16 @@ public class AggregationBolt extends BaseRichBolt {
 		}
 		else if (operation.equals("TOP")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
-		    Integer ram = tuple.getInteger(1);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
+		    Integer ram = tuple.getIntegerByField(Cons.TUPLE_VAR_RAM);
 		    
 		    Integer curr_top = top.get(id);
 		    
@@ -169,8 +223,16 @@ public class AggregationBolt extends BaseRichBolt {
 		}
 		else if (operation.equals("BOTTOM")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
-		    Integer ram = tuple.getInteger(0);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
+		    Integer ram = tuple.getIntegerByField(Cons.TUPLE_VAR_RAM);
 		    
 		    Integer curr_bottom = bottom.get(id);
 		    
@@ -185,7 +247,15 @@ public class AggregationBolt extends BaseRichBolt {
 	else if (field.equals("activeSessions")) {
 		if (operation.equals("AVG")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
 		    //Have we counted any already?
 		    Integer count = counts.get(id);
 		    if (count == null)		    	
@@ -195,7 +265,7 @@ public class AggregationBolt extends BaseRichBolt {
 		    counts.put(id, count);
 		    
 		    Integer curr_as_sum = sum.get(id);
-		    Integer activeSessions = tuple.getInteger(2);
+		    Integer activeSessions = tuple.getIntegerByField(Cons.TUPLE_VAR_ACTIVESESSIONS);
 		    
 		    if (curr_as_sum == null)
 		    	curr_as_sum = activeSessions;
@@ -208,8 +278,16 @@ public class AggregationBolt extends BaseRichBolt {
 		}
 		else if (operation.equals("TOP")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
-		    Integer activeSessions = tuple.getInteger(2);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
+		    Integer activeSessions = tuple.getIntegerByField(Cons.TUPLE_VAR_ACTIVESESSIONS);
 		    
 		    Integer curr_top = top.get(id);
 		    
@@ -222,8 +300,16 @@ public class AggregationBolt extends BaseRichBolt {
 		}
 		else if (operation.equals("BOTTOM")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
-		    Integer activeSessions = tuple.getInteger(2);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
+		    Integer activeSessions = tuple.getIntegerByField(Cons.TUPLE_VAR_ACTIVESESSIONS);
 		    
 		    Integer curr_bottom = bottom.get(id);
 		    
@@ -236,10 +322,18 @@ public class AggregationBolt extends BaseRichBolt {
 		}
 		else if (operation.equals("SUM")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
 		    
 		    Integer curr_as_sum = sum.get(id);
-		    Integer activeSessions = tuple.getInteger(2);
+		    Integer activeSessions = tuple.getIntegerByField(Cons.TUPLE_VAR_ACTIVESESSIONS);
 		    
 		    if (curr_as_sum == null)
 		    	curr_as_sum = activeSessions;
@@ -252,8 +346,17 @@ public class AggregationBolt extends BaseRichBolt {
 	else if (field.equals("upTime")) {
 		if (operation.equals("TOP")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
-		    Integer upTime = tuple.getInteger(1);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
+			
+		    Integer upTime = tuple.getIntegerByField(Cons.TUPLE_VAR_UPTIME);
 		    
 		    Integer curr_top = top.get(id);
 		    
@@ -268,7 +371,15 @@ public class AggregationBolt extends BaseRichBolt {
 	else if (field.equals("temperature")) {
 		if (operation.equals("AVG")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
 		    //Have we counted any already?
 		    Integer count = counts.get(id);
 		    if (count == null)		    	
@@ -278,7 +389,7 @@ public class AggregationBolt extends BaseRichBolt {
 		    counts.put(id, count);
 		    
 		    Integer curr_temp_sum = sum.get(id);
-		    Integer temperature = tuple.getInteger(7);
+		    Integer temperature = tuple.getIntegerByField(Cons.TUPLE_VAR_TEMPERATURE);
 		    
 		    if (curr_temp_sum == null)
 		    	curr_temp_sum = temperature;
@@ -291,8 +402,17 @@ public class AggregationBolt extends BaseRichBolt {
 		}
 		else if (operation.equals("TOP")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
-		    Integer temperature = tuple.getInteger(7);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
+			
+		    Integer temperature = tuple.getIntegerByField(Cons.TUPLE_VAR_TEMPERATURE);
 		    
 		    Integer curr_top = top.get(id);
 		    
@@ -305,8 +425,17 @@ public class AggregationBolt extends BaseRichBolt {
 		}
 		else if (operation.equals("BOTTOM")) {
 		    //Get the router-id contents from the tuple
-		    Integer id = tuple.getInteger(4);
-		    Integer temperature = tuple.getInteger(7);
+			Integer id = tuple.getIntegerByField(Cons.TUPLE_VAR_ID);
+			
+			String name_t = name.get(id);
+			if (name_t == null) 
+				name.put(id, tuple.getStringByField(Cons.TUPLE_VAR_NAME));
+			
+			String site_t = site.get(id);
+			if (site_t == null) 
+				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
+			
+		    Integer temperature = tuple.getIntegerByField(Cons.TUPLE_VAR_TEMPERATURE);
 		    
 		    Integer curr_bottom = bottom.get(id);
 		    
@@ -329,7 +458,8 @@ public class AggregationBolt extends BaseRichBolt {
   //Declare that we will emit a tuple containing two fields; word and count
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declare(new Fields("id", "cpu_average"));
+    declarer.declare(new Fields(Cons.TUPLE_VAR_ID, Cons.TUPLE_VAR_NAME, Cons.TUPLE_VAR_SITE, Cons.TUPLE_VAR_EVENTTIME, Cons.TUPLE_VAR_VALUE, 
+    		Cons.TUPLE_VAR_DURATION, Cons.TUPLE_VAR_FIELD, Cons.TUPLE_VAR_OPER));        
   }
 
 
@@ -344,34 +474,186 @@ public class AggregationBolt extends BaseRichBolt {
 	  private final Map<Integer, Integer> sum;
 	  private final Map<Integer, Integer> top;
 	  private final Map<Integer, Integer> bottom;
-	  private final Integer average;
-
+	  private Integer average;
+	  
+	  private final Map<Integer, String> name;
+	  private final Map<Integer, String> site;
+	  
+	  private final String field;
+	  private final String operation;
+	  private final Integer duration;
 	  
 	  private final OutputCollector collector;
 	  
-	  public EmitTask(Map<Integer, Integer> sum, Map<Integer, Integer> top, Map<Integer, Integer> bottom, Integer average, OutputCollector collector) {
+	  public EmitTask(Map<Integer, Integer> sum, Map<Integer, Integer> top, Map<Integer, Integer> bottom, Integer average,  Map<Integer, String> name, Map<Integer, String> site, String field, String operation, Integer duration, OutputCollector collector) {
+		  
 		  	this.sum = sum;
 		  	this.top = top;
 		  	this.bottom = bottom;
 		  	this.average = average;
+		  	
+		  	this.name = name;
+		  	this.site = site;
+		 
+		  	
+		  	this.field = field;
+		  	this.operation = operation;
+		  	this.duration = duration;
+		  	
 		  	this.collector = collector;
 	  }
 	  
 	  @Override
 	  public void run() {
-		  // create snapshot
-//		  Map<String, Integer> snapshot;
-//		  synchronized (this.counts) {
-//			  snapshot = new HashMap<String, Integer>(this.counts);
-//			  this.counts.clear();
-//		  }
-//		  
-//		  long currentTime = System.currentTimeMillis();
-//		  Set<String> keys = snapshot.keySet();
-//		  for (String word : keys) {
-//			  Integer count = snapshot.get(word);
-//			  this.collector.emit(new Values(currentTime, word, count));
-//		  }
+		  
+		  //Do we need sync here?
+		  if (this.field.equals("cpu") || this.field.equals("ram") || this.field.equals("temperature")) {
+			  
+			  if (this.operation.equals("AVG")) {
+				  Integer average_;								
+				  
+				  synchronized (this.average) {
+					  average_ = this.average;
+					  this.average = 0;
+				  }					  
+					  
+				  long currentTime = System.currentTimeMillis();
+				  Set<Integer> keys = this.name.keySet();
+				  for (Integer id : keys) {
+					  String name_  = this.name.get(id);
+					  String site_  = this.site.get(id);
+					  this.collector.emit(new Values(id, name_, site_, currentTime, average_, this.duration, this.field, this.operation));
+				  }
+
+			  }
+			  else if (this.operation.equals("TOP")) {
+				  Map<Integer, Integer> top_snapshot;
+				  
+				  synchronized (this.top) {
+					  top_snapshot = new HashMap<Integer, Integer>(this.top);
+					  this.top.clear();
+				  }
+				  
+				  long currentTime = System.currentTimeMillis();
+				  Set<Integer> keys = top_snapshot.keySet();
+				  for (Integer id : keys) {
+					  Integer aggr_value_top = top_snapshot.get(id);
+					  String name_  = this.name.get(id);
+					  String site_  = this.site.get(id);
+					  this.collector.emit(new Values(id, name_, site_, currentTime, aggr_value_top, this.duration, this.field, this.operation));
+				  }
+			  }
+			  else if (this.operation.equals("BOTTOM")) {
+				  Map<Integer, Integer> bottom_snapshot;
+				  
+				  synchronized (this.bottom) {
+					  bottom_snapshot = new HashMap<Integer, Integer>(this.bottom);
+					  this.bottom.clear();
+				  }
+				  
+				  long currentTime = System.currentTimeMillis();
+				  Set<Integer> keys = bottom_snapshot.keySet();
+				  for (Integer id : keys) {
+					  Integer aggr_value_bottom = bottom_snapshot.get(id);
+					  String name_  = this.name.get(id);
+					  String site_  = this.site.get(id);
+					  this.collector.emit(new Values(id, name_, site_, currentTime, aggr_value_bottom, this.duration, this.field, this.operation));
+				  }
+			  }
+			  
+		  }
+		  else if (this.field.equals("activeSessions")) {
+			  if (this.operation.equals("AVG")) {
+				  Integer average_;								
+				  
+				  synchronized (this.average) {
+					  average_ = this.average;
+					  this.average = 0;
+				  }					  
+					  
+				  long currentTime = System.currentTimeMillis();
+				  Set<Integer> keys = this.name.keySet();
+				  for (Integer id : keys) {
+					  String name_  = this.name.get(id);
+					  String site_  = this.site.get(id);
+					  this.collector.emit(new Values(id, name_, site_, currentTime, average_, this.duration, this.field, this.operation));
+				  }
+
+			  }
+			  else if (this.operation.equals("TOP")) {
+				  Map<Integer, Integer> top_snapshot;
+				  
+				  synchronized (this.top) {
+					  top_snapshot = new HashMap<Integer, Integer>(this.top);
+					  this.top.clear();
+				  }
+				  
+				  long currentTime = System.currentTimeMillis();
+				  Set<Integer> keys = top_snapshot.keySet();
+				  for (Integer id : keys) {
+					  Integer aggr_value_top = top_snapshot.get(id);
+					  String name_  = this.name.get(id);
+					  String site_  = this.site.get(id);
+					  this.collector.emit(new Values(id, name_, site_, currentTime, aggr_value_top, this.duration, this.field, this.operation));
+				  }
+			  }
+			  else if (this.operation.equals("BOTTOM")) {
+				  Map<Integer, Integer> bottom_snapshot;
+				  
+				  synchronized (this.bottom) {
+					  bottom_snapshot = new HashMap<Integer, Integer>(this.bottom);
+					  this.bottom.clear();
+				  }
+				  
+				  long currentTime = System.currentTimeMillis();
+				  Set<Integer> keys = bottom_snapshot.keySet();
+				  for (Integer id : keys) {
+					  Integer aggr_value_bottom = bottom_snapshot.get(id);
+					  String name_  = this.name.get(id);
+					  String site_  = this.site.get(id);
+					  this.collector.emit(new Values(id, name_, site_, currentTime, aggr_value_bottom, this.duration, this.field, this.operation));
+				  }
+			  }
+			  else if (this.operation.equals("SUM")) {
+				  Map<Integer, Integer> sum_snapshot;
+				  
+				  synchronized (this.sum) {
+					  sum_snapshot = new HashMap<Integer, Integer>(this.sum);
+					  this.sum.clear();
+				  }
+				  
+				  long currentTime = System.currentTimeMillis();
+				  Set<Integer> keys = sum_snapshot.keySet();
+				  for (Integer id : keys) {
+					  Integer aggr_value_sum = sum_snapshot.get(id);
+					  String name_  = this.name.get(id);
+					  String site_  = this.site.get(id);
+					  this.collector.emit(new Values(id, name_, site_, currentTime, aggr_value_sum, this.duration, this.field, this.operation));
+				  }
+			  }
+
+		  }
+		  else if (this.field.equals("upTime")) {
+			  
+			  if (this.operation.equals("TOP")) {
+				  Map<Integer, Integer> top_snapshot;
+				  
+				  synchronized (this.top) {
+					  top_snapshot = new HashMap<Integer, Integer>(this.top);
+					  this.top.clear();
+				  }
+				  
+				  long currentTime = System.currentTimeMillis();
+				  Set<Integer> keys = top_snapshot.keySet();
+				  for (Integer id : keys) {
+					  Integer aggr_value_top = top_snapshot.get(id);
+					  String name_  = this.name.get(id);
+					  String site_  = this.site.get(id);
+					  this.collector.emit(new Values(id, name_, site_, currentTime, aggr_value_top, this.duration, this.field, this.operation));
+				  }
+			  }
+			  
+		  }
 	  }
   }
 }
