@@ -1,3 +1,3 @@
 CREATE KEYSPACE alarms WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 1};
 CREATE TABLE alarms_meta (field text, rule text, value int, PRIMARY KEY (field,rule));
-
+CREATE TABLE active_alarms (managed_object text, notification_id int, additional_text text, state text, PRIMARY KEY (managed_object, notification_id));

@@ -19,6 +19,9 @@ public class Cons {
 	public static final String CASSANDRA_R_KEYSPACE = "cassandra.rules.keyspace";
 	public static final String CASSANDRA_R_TABLE = "cassandra.rules.table";
 	public static final String CASSANDRA_S_KEYSPACE = "cassandra.statistics.keyspace";
+	public static final String CASSANDRA_A_KEYSPACE = "cassandra.alarms.keyspace";
+	public static final String CASSANDRA_AM_TABLE = "cassandra.alarms.alarms_meta";       // Is that correct?
+	public static final String CASSANDRA_A_TABLE = "cassandra.alarms.active_alarms";      // Is that correct?
 	public static final String CASSANDRA_CLUSTERNAME = "cassandra.cluster.name";
 	public static final String CASSANDRA_A_BOLT_PARALLEL = "cassandra.aggregation.bolt.parallelism";
 	public static final String CASSANDRA_A_BOLT_BATCH = "cassandra.aggregation.bolt.batch";
@@ -40,6 +43,10 @@ public class Cons {
 	public static final String TUPLE_VAR_VALUE = "value";
 	public static final String TUPLE_VAR_FIELD = "field";
 	public static final String TUPLE_VAR_OPER = "operation";
+	public static final String TUPLE_VAR_MO = "managed_object";
+	public static final String TUPLE_VAR_NOTIF = "notification_id";
+	public static final String TUPLE_VAR_ADDTEXT = "additional_text";
+	public static final String TUPLE_VAR_STATE = "additional_text";
 
 	public static final String LOCAL_ADDRS = "127.0.0.1";
 
