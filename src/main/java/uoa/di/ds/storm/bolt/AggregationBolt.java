@@ -19,7 +19,6 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uoa.di.ds.storm.spout.RandomEventGeneratorSpout;
 import uoa.di.ds.storm.utils.Cons;
 
 //There are a variety of bolt types. In this case, we use BaseBasicBolt
@@ -142,9 +141,9 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    Integer curr_top = top.get(id);
 		    
-		    if (curr_top == null)
-		    	curr_top = cpu;
-		    else {
+		    if (curr_top == null){
+		    	top.put(id,cpu);
+		    } else {
 		    	if (curr_top < cpu)
 		    		top.put(id, cpu);               //Replace top
  		    }		 
@@ -167,10 +166,10 @@ public class AggregationBolt extends BaseRichBolt {
 		    Integer curr_bottom = bottom.get(id);
 		    
 		    if (curr_bottom == null)
-		    	curr_bottom = cpu;
+		    	bottom.put(id,cpu);
 		    else {
 		    	if (curr_bottom > cpu)
-		    		top.put(id, cpu);               //Replace bottom
+		    		bottom.put(id, cpu);               //Replace bottom
  		    }		
 		}
 	}
@@ -221,9 +220,9 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    Integer curr_top = top.get(id);
 		    
-		    if (curr_top == null)
-		    	curr_top = ram;
-		    else {
+		    if (curr_top == null){
+		    	top.put(id,ram);
+		    } else {
 		    	if (curr_top < ram)
 		    		top.put(id, ram);               //Replace top
  		    }	
@@ -244,10 +243,10 @@ public class AggregationBolt extends BaseRichBolt {
 		    Integer curr_bottom = bottom.get(id);
 		    
 		    if (curr_bottom == null)
-		    	curr_bottom = ram;
+		    	bottom.put(id,ram);
 		    else {
 		    	if (curr_bottom > ram)
-		    		top.put(id, ram);               //Replace bottom
+		    		bottom.put(id, ram);               //Replace bottom
  		    }		
 		}
 	}
@@ -298,9 +297,9 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    Integer curr_top = top.get(id);
 		    
-		    if (curr_top == null)
-		    	curr_top = activeSessions;
-		    else {
+		    if (curr_top == null){
+		    	top.put(id,activeSessions);
+		    } else {
 		    	if (curr_top < activeSessions)
 		    		top.put(id, activeSessions);               //Replace top
  		    }	
@@ -321,10 +320,10 @@ public class AggregationBolt extends BaseRichBolt {
 		    Integer curr_bottom = bottom.get(id);
 		    
 		    if (curr_bottom == null)
-		    	curr_bottom = activeSessions;
+		    	bottom.put(id,activeSessions);
 		    else {
 		    	if (curr_bottom > activeSessions)
-		    		top.put(id, activeSessions);               //Replace bottom
+		    		bottom.put(id, activeSessions);               //Replace bottom
  		    }		
 		}
 		else if (operation.equals("SUM")) {
@@ -367,9 +366,9 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    Integer curr_top = top.get(id);
 		    
-		    if (curr_top == null)
-		    	curr_top = upTime;
-		    else {
+		    if (curr_top == null){
+		    	top.put(id,upTime);
+		    } else {
 		    	if (curr_top < upTime)
 		    		top.put(id, upTime);               //Replace top
  		    }	
@@ -423,9 +422,9 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    Integer curr_top = top.get(id);
 		    
-		    if (curr_top == null)
-		    	curr_top = temperature;
-		    else {
+		    if (curr_top == null){
+		    	top.put(id,temperature);
+		    } else {
 		    	if (curr_top < temperature)
 		    		top.put(id, temperature);               //Replace top
  		    }	
@@ -447,10 +446,10 @@ public class AggregationBolt extends BaseRichBolt {
 		    Integer curr_bottom = bottom.get(id);
 		    
 		    if (curr_bottom == null)
-		    	curr_bottom = temperature;
+		    	bottom.put(id,temperature);
 		    else {
 		    	if (curr_bottom > temperature)
-		    		top.put(id, temperature);               //Replace bottom
+		    		bottom.put(id, temperature);               //Replace bottom
  		    }	
 		}
 	}

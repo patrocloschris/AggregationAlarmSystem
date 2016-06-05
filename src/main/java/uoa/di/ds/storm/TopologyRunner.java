@@ -77,7 +77,7 @@ public class TopologyRunner {
 		}
 		
 		/*Connecting CassandraAggregationBolt*/
-		AggregationCassandraBolt cassandraBolt = new AggregationCassandraBolt(config.getString(Cons.CASSANDRA_R_KEYSPACE));
+		AggregationCassandraBolt cassandraBolt = new AggregationCassandraBolt(config.getString(Cons.CASSANDRA_S_KEYSPACE));
 		cassandraBolt.withHostName(config.getString(Cons.CASSANDRA_HOST));
 		cassandraBolt.withClusterName(config.getString(Cons.CASSANDRA_CLUSTERNAME));
 		cassandraBolt.withBatchMode(config.getBoolean(Cons.CASSANDRA_A_BOLT_BATCH));
@@ -85,7 +85,7 @@ public class TopologyRunner {
 		LOG.info("Adding CassandraAggregation Bolt");
 		BoltDeclarer declarer = builder.setBolt(Cons.DefaultACassandraBoltName,cassandraBolt,config.getInt(Cons.CASSANDRA_A_BOLT_PARALLEL,2));
 		for(String stream : streams){
-			declarer.shuffleGrouping(Cons.DefaultACassandraBoltName, stream);
+			declarer.shuffleGrouping(stream);
 		}
 		
 		
