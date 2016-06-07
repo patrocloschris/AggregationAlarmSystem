@@ -38,13 +38,16 @@ public class AlarmsBolt extends BaseRichBolt{
 	private Session session;
 	private String keyspace;
 	private ArrayList<String> rulesList;
+	private String metaTable;
 	private Map<String , HashSet<Integer>> active_notifs;
 
 //	public static final String CASSANDRA_A_KEYSPACE = "cassandra.alarms.keyspace";
 //	public static final String CASSANDRA_AM_TABLE = "cassandra.alarms.alarms_meta";       // Is that correct?
 
-    public AlarmsBolt(String keyspace) {
+    public AlarmsBolt(String keyspace,String metaTable) {
+    	LOG.info("Creating Bolt for Keyspace=[{}]",keyspace);
     	this.keyspace = keyspace;
+    	this.metaTable = metaTable;
     	this.rulesList = new ArrayList<String>();
     }
 	
@@ -54,14 +57,14 @@ public class AlarmsBolt extends BaseRichBolt{
 	      this.context = context;
 	      this.collector = collector;
 	      this.active_notifs = new HashMap<>();
-
+	      LOG.info("Preparing Bolt...");	
 	      
     	  ConnectionManager.init(cassandraHostname, clusterName);
     	  session = ConnectionManager.getInstance().getCluster().connect(keyspace);
     	  LOG.info("Preparing alarms bolt....Connection for DB was=[{}]",session.getLoggedKeyspace());
     	  
     	  //Read Rules from metadata table
-  		  ResultSet results = session.execute("SELECT * FROM " + Cons.CASSANDRA_AM_TABLE);
+  		  ResultSet results = session.execute("SELECT * FROM " + metaTable);
     	  for (Row row : results) {
 
     		//e.g. rule: field = "cpu" / rule=" >" / value= "90"
@@ -71,6 +74,7 @@ public class AlarmsBolt extends BaseRichBolt{
 			int value = row.getInt("value") == 0 ? 10 : row.getInt("value");
 			
 			String alarm_rule_tuple = field+","+operation+","+rule+","+Integer.toString(value);
+			LOG.info("Adding rule=[{}]",alarm_rule_tuple);
 			rulesList.add(alarm_rule_tuple);										//Each rule in the arraylist has the form: field,operation,rule,value
 		}
 	}
@@ -172,12 +176,14 @@ public class AlarmsBolt extends BaseRichBolt{
 		if (s == null) {
 			HashSet<Integer> notifs = new HashSet<Integer>();
 			notifs.add(notif_id);
+			LOG.info("Active First Alarm for mo=[{}] with notificationID=[{}] and text=[{}]",mo,notif_id,add_text);
 			this.collector.emit(new Values(mo, notif_id, add_text, eventtime, "active"));
 			active_notifs.put(mo, notifs);
 		}
 		else {
 			if (!s.contains(notif_id)) {
 				s.add(notif_id);
+				LOG.info("Active Alarm for mo=[{}] with notificationID=[{}] and text=[{}]",mo,notif_id,add_text);
 				this.collector.emit(new Values(mo, notif_id, add_text, eventtime, "active"));
 			}
 			//If set of active notifs for this mo contains the specified id do nothing!
@@ -189,7 +195,8 @@ public class AlarmsBolt extends BaseRichBolt{
 		
 		if (s != null) {
 			if (s.contains(notif_id)) {
-				this.collector.emit(new Values(mo, notif_id, add_text, eventtime));
+				LOG.info("Clear Alarm for mo=[{}] with notificationID=[{}] and text=[{}]",mo,notif_id,add_text);
+				this.collector.emit(new Values(mo, notif_id, add_text, eventtime,"clear"));
 				s.remove(notif_id);  //Remove active
 			}
 		}

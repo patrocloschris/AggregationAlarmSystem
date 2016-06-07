@@ -92,14 +92,21 @@ public class AlarmsCassandraBolt extends BaseRichBolt{
 	}
 	
 	private void insertToCassandra(Tuple tuple){
-		Statement statement = QueryBuilder.insertInto(table)
-		        .value("managed_object",tuple.getValueByField(Cons.TUPLE_VAR_MO))
-		        .value("notification_id", tuple.getValueByField(Cons.TUPLE_VAR_NOTIF))
-		        .value("additional_text", tuple.getValueByField(Cons.TUPLE_VAR_ADDTEXT))
-		        .value("state", tuple.getValueByField(Cons.TUPLE_VAR_STATE))
-		        .value("eventTime", tuple.getValueByField(Cons.TUPLE_VAR_EVENTTIME));
-		session.execute(statement);		
-		LOG.info("Insert into DB tuple=[{}]",tuple);
+
+		Statement statement = null;
+		if(tuple.getValueByField(Cons.TUPLE_VAR_STATE).equals("active")){
+			statement = QueryBuilder.insertInto(table)
+			        .value("managed_object",tuple.getValueByField(Cons.TUPLE_VAR_MO))
+			        .value("notification_id", tuple.getValueByField(Cons.TUPLE_VAR_NOTIF))
+			        .value("additional_text", tuple.getValueByField(Cons.TUPLE_VAR_ADDTEXT))
+			        .value("eventTime", tuple.getValueByField(Cons.TUPLE_VAR_EVENTTIME));
+			session.execute(statement);		
+			LOG.info("Insert into DB tuple=[{}]",tuple);
+
+		}else{
+			session.execute("Delete From "+table+" where managed_object='"+tuple.getValueByField(Cons.TUPLE_VAR_MO)+"' and notification_id="+tuple.getValueByField(Cons.TUPLE_VAR_NOTIF));
+			LOG.info("Insert into DB tuple=[{}]",tuple);
+		}
 	}
 
 	private void insertBatchToCassandra(List<Tuple> tuples){

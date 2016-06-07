@@ -27,6 +27,13 @@ public class Cons {
 	public static final String CASSANDRA_A_BOLT_BATCH = "cassandra.aggregation.bolt.batch";
 	public static final String CASSANDRA_A_BOLT_BATCH_SIZE = "cassandra.aggregation.bolt.batch.size";
 	
+	public static final String CASSANDRA_L_KEYSPACE="cassandra.alarms.keyspace";
+	public static final String CASSANDRA_L_META="topology.alarms.alarms.meta";
+	public static final String CASSANDRA_L_ACTIVE="cassandra.alarms.active_alarms";
+	public static final String CASSANDRA_L_ACTIVE_BOLT_PARRALLEL="cassandra.alarms.bolt.parallelism";
+	public static final String CASSANDRA_L_ACTIVE_BATCH="cassandra.alarms.bolt.batch";
+	public static final String CASSANDRA_L_ACTIVE_BATCH_SIZE="cassandra.alarms.bolt.batch.size";
+	public static final String CASSANDRA_L_META_BOLT_PARRALLEL="topology.alarms.bolt.parallelism";
 
 	public static final String TUPLE_VAR_MSG = "message";
 	public static final String TUPLE_VAR_KEY = "key";
@@ -54,5 +61,6 @@ public class Cons {
 	public static final String DefaultSpoutName2 = "RandomGeneratorSpout";
 	public static final String DefaultBoltName = "Bolt";
 	public static final String DefaultACassandraBoltName = "CassandraAggregationBolt";
-
+	public static final String DefaultAlarmsBoltName = "AlarmsBolt";
+	public static final String DefaultAlarmsCassandraBoltName = "AlarmsCassandraBolt";
 }
