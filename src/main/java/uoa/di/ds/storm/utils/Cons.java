@@ -53,7 +53,7 @@ public class Cons {
 	public static final String TUPLE_VAR_MO = "managed_object";
 	public static final String TUPLE_VAR_NOTIF = "notification_id";
 	public static final String TUPLE_VAR_ADDTEXT = "additional_text";
-	public static final String TUPLE_VAR_STATE = "additional_text";
+	public static final String TUPLE_VAR_STATE = "state";
 
 	public static final String LOCAL_ADDRS = "127.0.0.1";
 

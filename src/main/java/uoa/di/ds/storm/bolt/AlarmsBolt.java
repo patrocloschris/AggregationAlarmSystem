@@ -66,12 +66,12 @@ public class AlarmsBolt extends BaseRichBolt{
     	  //Read Rules from metadata table
   		  ResultSet results = session.execute("SELECT * FROM " + metaTable);
     	  for (Row row : results) {
-
     		//e.g. rule: field = "cpu" / rule=" >" / value= "90"
 			String field = row.getString("field") == null ? "field" : row.getString("field");
 			String operation = row.getString("operation") == null ? "operation" : row.getString("operation");
 			String rule = row.getString("rule") == null ? "rule" : row.getString("rule");
 			int value = row.getInt("value") == 0 ? 10 : row.getInt("value");
+   		 LOG.info("ALARMS_META => field=[{}] operation=[{}] rule=[{}] value=[{}]",field,operation,rule,value);
 			
 			String alarm_rule_tuple = field+","+operation+","+rule+","+Integer.toString(value);
 			LOG.info("Adding rule=[{}]",alarm_rule_tuple);
@@ -90,7 +90,7 @@ public class AlarmsBolt extends BaseRichBolt{
 	@Override
 	public void execute(Tuple input) {
 		
-		for (int i=0; i<=rulesList.size(); i++) {
+		for (int i=0; i<rulesList.size(); i++) {
 			String alarm_rule = rulesList.get(i);	
 			
 			String[] tokens = alarm_rule.split(",");
@@ -106,27 +106,29 @@ public class AlarmsBolt extends BaseRichBolt{
 				if (operation.equals(input.getStringByField(Cons.TUPLE_VAR_OPER))) {
 					
 					if (rule.equals(">")) {
-						if (input.getIntegerByField(Cons.TUPLE_VAR_VALUE) > Integer.parseInt(value)) {
+						String tupleValue = input.getValueByField(Cons.TUPLE_VAR_VALUE).toString();
+						if (Float.parseFloat(tupleValue) > Float.parseFloat(value)) {
 							Integer notif = generateNotifId(field, operation, rule);
-							String add_text = new String(field+ " " + operation+"("+Integer.toString(input.getIntegerByField(Cons.TUPLE_VAR_VALUE))+")" + " exceeded allowed limit of "+ value);
+							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " exceeded allowed limit of "+ value);
 							generateActiveAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
 						}
 						else {
 							Integer notif = generateNotifId(field, operation, rule);
-							String add_text = new String(field+ " " + operation+"("+Integer.toString(input.getIntegerByField(Cons.TUPLE_VAR_VALUE))+")" + " is now below limit of "+ value);
+							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " is now below limit of "+ value);
 							generateClearAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
 					
 						}
 					}
 					else if (rule.equals("<")) {
-						if (input.getIntegerByField(Cons.TUPLE_VAR_VALUE) < Integer.parseInt(value)) {
+						String tupleValue = input.getValueByField(Cons.TUPLE_VAR_VALUE).toString();
+						if (Float.parseFloat(tupleValue) < Float.parseFloat(value)) {
 							Integer notif = generateNotifId(field, operation, rule);
-							String add_text = new String(field+ " " + operation+"("+Integer.toString(input.getIntegerByField(Cons.TUPLE_VAR_VALUE))+")" + " descended below allowed limit of "+ value);
+							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " descended below allowed limit of "+ value);
 							generateActiveAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
 						}
 						else {
 							Integer notif = generateNotifId(field, operation, rule);
-							String add_text = new String(field+ " " + operation+"("+Integer.toString(input.getIntegerByField(Cons.TUPLE_VAR_VALUE))+")" + " is now above limit of "+ value);
+							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " is now above limit of "+ value);
 							generateClearAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
 						}
 					}
