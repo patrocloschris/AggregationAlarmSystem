@@ -9,6 +9,8 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Session;
@@ -19,6 +21,8 @@ import uoa.di.ds.db.ConnectionManager;
 import uoa.di.ds.storm.utils.Cons;
 
 public class AlarmsCassandraBolt extends BaseRichBolt{
+
+	private static final Logger LOG = LoggerFactory.getLogger(AlarmsCassandraBolt.class);
 
 	private static final long serialVersionUID = 1L;
 	
@@ -32,10 +36,14 @@ public class AlarmsCassandraBolt extends BaseRichBolt{
 	private ArrayList<Tuple> tupleList ;
 	private Session session;
 	private String keyspace;
+	private String table;
 	
-    public AlarmsCassandraBolt(String keyspace) {
+    public AlarmsCassandraBolt(String keyspace,String table) {
     	this.tupleList = new ArrayList<Tuple>();
     	this.keyspace = keyspace;
+    	this.table = table;
+    	LOG.info("Creating bolt for Keyspace=[{}] and Table=[{}]",keyspace,table);
+
     }
     
 	@Override
@@ -45,6 +53,7 @@ public class AlarmsCassandraBolt extends BaseRichBolt{
 	      this._collector = collector;
     	  ConnectionManager.init(cassandraHostname,clusterName);
     	  session = ConnectionManager.getInstance().getCluster().connect(keyspace);
+    	  LOG.info("Preparing bolt....Connection for on DB=[{}]",session.getLoggedKeyspace());
 	}
 
 	@Override
@@ -83,33 +92,31 @@ public class AlarmsCassandraBolt extends BaseRichBolt{
 	}
 	
 	private void insertToCassandra(Tuple tuple){
-//		Statement statement = QueryBuilder.insertInto(constructTableName(tuple.getStringByField(Cons.TUPLE_VAR_FIELD),
-//				tuple.getStringByField(Cons.TUPLE_VAR_OPER)))
-//		        .value("id",tuple.getIntegerByField(Cons.TUPLE_VAR_ID))
-//		        .value("name", tuple.getStringByField(Cons.TUPLE_VAR_NAME))
-//		        .value("site", tuple.getStringByField(Cons.TUPLE_VAR_SITE))
-//		        .value("eventTime", tuple.getLongByField(Cons.TUPLE_VAR_EVENTTIME))
-//		        .value("value", tuple.getFloatByField(Cons.TUPLE_VAR_VALUE))
-//		        .value("duration", tuple.getIntegerByField(Cons.TUPLE_VAR_DURATION));
-//		session.execute(statement);		
+		Statement statement = QueryBuilder.insertInto(table)
+		        .value("managed_object",tuple.getValueByField(Cons.TUPLE_VAR_MO))
+		        .value("notification_id", tuple.getValueByField(Cons.TUPLE_VAR_NOTIF))
+		        .value("additional_text", tuple.getValueByField(Cons.TUPLE_VAR_ADDTEXT))
+		        .value("state", tuple.getValueByField(Cons.TUPLE_VAR_STATE))
+		        .value("eventTime", tuple.getValueByField(Cons.TUPLE_VAR_EVENTTIME));
+		session.execute(statement);		
+		LOG.info("Insert into DB tuple=[{}]",tuple);
 	}
 
 	private void insertBatchToCassandra(List<Tuple> tuples){
 		
-//		BatchStatement batch = new BatchStatement();
-//
-//		for(Tuple tuple: tuples){
-//			Statement statement = QueryBuilder.insertInto(constructTableName(tuple.getStringByField(Cons.TUPLE_VAR_FIELD),
-//					tuple.getStringByField(Cons.TUPLE_VAR_OPER)))
-//			        .value("id",tuple.getIntegerByField(Cons.TUPLE_VAR_ID))
-//			        .value("name", tuple.getStringByField(Cons.TUPLE_VAR_NAME))
-//			        .value("site", tuple.getStringByField(Cons.TUPLE_VAR_SITE))
-//			        .value("eventTime", tuple.getLongByField(Cons.TUPLE_VAR_EVENTTIME))
-//			        .value("value", tuple.getFloatByField(Cons.TUPLE_VAR_VALUE))
-//			        .value("duration", tuple.getIntegerByField(Cons.TUPLE_VAR_DURATION));
-//			batch.add(statement);
-//		}
-//		session.equals(batch);
+		BatchStatement batch = new BatchStatement();
+
+		for(Tuple tuple: tuples){
+			Statement statement = QueryBuilder.insertInto(table)
+			        .value("managed_object",tuple.getValueByField(Cons.TUPLE_VAR_MO))
+			        .value("notification_id", tuple.getValueByField(Cons.TUPLE_VAR_NOTIF))
+			        .value("additional_text", tuple.getValueByField(Cons.TUPLE_VAR_ADDTEXT))
+			        .value("state", tuple.getValueByField(Cons.TUPLE_VAR_STATE))
+			        .value("eventTime", tuple.getValueByField(Cons.TUPLE_VAR_EVENTTIME));
+			batch.add(statement);
+		}
+		session.execute(batch);
+		LOG.info("Insert into DB multi tuples");
 	}
 	
 

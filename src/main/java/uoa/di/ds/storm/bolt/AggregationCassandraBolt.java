@@ -52,7 +52,7 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 	      this._collector = collector;
     	  ConnectionManager.init(cassandraHostname,clusterName);
     	  session = ConnectionManager.getInstance().getCluster().connect(keyspace);
-    	  LOG.info("Preparing bolt....Connection for DB was=[{}]",session.getLoggedKeyspace());
+    	  LOG.info("Preparing bolt....Connection on DB=[{}]",session.getLoggedKeyspace());
 	}
 
 	@Override
@@ -91,13 +91,14 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 	}
 	
 	private void insertToCassandra(Tuple tuple){
+		
 		Statement statement = QueryBuilder.insertInto(constructTableName(tuple.getStringByField(Cons.TUPLE_VAR_FIELD),
 				tuple.getStringByField(Cons.TUPLE_VAR_OPER)))
 		        .value("id",tuple.getIntegerByField(Cons.TUPLE_VAR_ID))
 		        .value("name", tuple.getStringByField(Cons.TUPLE_VAR_NAME))
 		        .value("site", tuple.getStringByField(Cons.TUPLE_VAR_SITE))
 		        .value("eventTime", tuple.getLongByField(Cons.TUPLE_VAR_EVENTTIME))
-		        .value("value", tuple.getFloatByField(Cons.TUPLE_VAR_VALUE))
+		        .value("value", tuple.getValueByField(Cons.TUPLE_VAR_VALUE))
 		        .value("duration", tuple.getIntegerByField(Cons.TUPLE_VAR_DURATION));
 		session.execute(statement);
 		LOG.info("Insert into DB tuple=[{}]",tuple);

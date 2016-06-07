@@ -21,6 +21,7 @@ import com.datastax.driver.core.Session;
 import uoa.di.ds.db.ConnectionManager;
 import uoa.di.ds.storm.bolt.AggregationBolt;
 import uoa.di.ds.storm.bolt.AggregationCassandraBolt;
+import uoa.di.ds.storm.bolt.AlarmsCassandraBolt;
 import uoa.di.ds.storm.spout.RandomEventGeneratorSpout;
 import uoa.di.ds.storm.utils.Cons;
 import uoa.di.ds.storm.utils.configuration.TopologyConfig;
@@ -77,7 +78,7 @@ public class TopologyRunner {
 		}
 		
 		/*Connecting CassandraAggregationBolt*/
-		AggregationCassandraBolt cassandraBolt = new AggregationCassandraBolt(config.getString(Cons.CASSANDRA_R_KEYSPACE));
+		AggregationCassandraBolt cassandraBolt = new AggregationCassandraBolt(config.getString(Cons.CASSANDRA_S_KEYSPACE));
 		cassandraBolt.withHostName(config.getString(Cons.CASSANDRA_HOST));
 		cassandraBolt.withClusterName(config.getString(Cons.CASSANDRA_CLUSTERNAME));
 		cassandraBolt.withBatchMode(config.getBoolean(Cons.CASSANDRA_A_BOLT_BATCH));
@@ -85,9 +86,16 @@ public class TopologyRunner {
 		LOG.info("Adding CassandraAggregation Bolt");
 		BoltDeclarer declarer = builder.setBolt(Cons.DefaultACassandraBoltName,cassandraBolt,config.getInt(Cons.CASSANDRA_A_BOLT_PARALLEL,2));
 		for(String stream : streams){
-			declarer.shuffleGrouping(Cons.DefaultACassandraBoltName, stream);
+			declarer.shuffleGrouping(stream);
 		}
 		
+		
+		/*
+		 * TODO 
+		 * 1. Add Alarm Bolt
+		 * 2. Add Cassandra Alarm Bolt 
+		 * 3. Change logging level (because we have high i/o in logs) 
+		 */
 		
 		LOG.info("Starting topology deployment...");
 		LOG.info("Local mode set to: " + config.getBoolean(Cons.TLG_LOCAL));

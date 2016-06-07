@@ -19,7 +19,6 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uoa.di.ds.storm.spout.RandomEventGeneratorSpout;
 import uoa.di.ds.storm.utils.Cons;
 
 //There are a variety of bolt types. In this case, we use BaseBasicBolt
@@ -80,7 +79,7 @@ public class AggregationBolt extends BaseRichBolt {
     DateTime startAt = now.minuteOfHour().roundFloorCopy().plusSeconds(roundSeconds);
     
 	this.timer = new Timer();
-	this.timer.scheduleAtFixedRate(new EmitTask(this.boltName,sum, top, bottom, average, name, site, field, operation, duration, _collector), startAt.toDate(), EMIT_TIMEFRAME * 1000L);
+	this.timer.scheduleAtFixedRate(new EmitTask(this.boltName,sum, top, bottom, average, name, site, field, operation, duration,counts, _collector), startAt.toDate(), EMIT_TIMEFRAME * 1000L);
 	 LOG.info("Preapating Bolt=[{}]",this.boltName);
   }
 
@@ -104,8 +103,6 @@ public class AggregationBolt extends BaseRichBolt {
 			if (site_t == null) 
 				site.put(id, tuple.getStringByField(Cons.TUPLE_VAR_SITE));
 
-			
-			
 		    //Have we counted any already?
 		    Integer count = counts.get(id);
 		    if (count == null)
@@ -123,8 +120,6 @@ public class AggregationBolt extends BaseRichBolt {
 		    	curr_cpu_sum += cpu;
 		    
 		    sum.put(id, curr_cpu_sum);
-		    
-		    average = sum.get(id)/counts.get(id);		    
 		}
 		else if (operation.equals("TOP")) {
 		    //Get the router-id contents from the tuple
@@ -142,9 +137,9 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    Integer curr_top = top.get(id);
 		    
-		    if (curr_top == null)
-		    	curr_top = cpu;
-		    else {
+		    if (curr_top == null){
+		    	top.put(id,cpu);
+		    } else {
 		    	if (curr_top < cpu)
 		    		top.put(id, cpu);               //Replace top
  		    }		 
@@ -167,10 +162,10 @@ public class AggregationBolt extends BaseRichBolt {
 		    Integer curr_bottom = bottom.get(id);
 		    
 		    if (curr_bottom == null)
-		    	curr_bottom = cpu;
+		    	bottom.put(id,cpu);
 		    else {
 		    	if (curr_bottom > cpu)
-		    		top.put(id, cpu);               //Replace bottom
+		    		bottom.put(id, cpu);               //Replace bottom
  		    }		
 		}
 	}
@@ -203,8 +198,6 @@ public class AggregationBolt extends BaseRichBolt {
 		    	curr_ram_sum += ram;
 		    
 		    sum.put(id, curr_ram_sum);
-		    
-		    average = sum.get(id)/counts.get(id);		    
 		}
 		else if (operation.equals("TOP")) {
 		    //Get the router-id contents from the tuple
@@ -221,9 +214,9 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    Integer curr_top = top.get(id);
 		    
-		    if (curr_top == null)
-		    	curr_top = ram;
-		    else {
+		    if (curr_top == null){
+		    	top.put(id,ram);
+		    } else {
 		    	if (curr_top < ram)
 		    		top.put(id, ram);               //Replace top
  		    }	
@@ -244,10 +237,10 @@ public class AggregationBolt extends BaseRichBolt {
 		    Integer curr_bottom = bottom.get(id);
 		    
 		    if (curr_bottom == null)
-		    	curr_bottom = ram;
+		    	bottom.put(id,ram);
 		    else {
 		    	if (curr_bottom > ram)
-		    		top.put(id, ram);               //Replace bottom
+		    		bottom.put(id, ram);               //Replace bottom
  		    }		
 		}
 	}
@@ -281,7 +274,6 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    sum.put(id, curr_as_sum);
 		    
-		    average = sum.get(id)/counts.get(id);		    			
 		}
 		else if (operation.equals("TOP")) {
 		    //Get the router-id contents from the tuple
@@ -298,9 +290,9 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    Integer curr_top = top.get(id);
 		    
-		    if (curr_top == null)
-		    	curr_top = activeSessions;
-		    else {
+		    if (curr_top == null){
+		    	top.put(id,activeSessions);
+		    } else {
 		    	if (curr_top < activeSessions)
 		    		top.put(id, activeSessions);               //Replace top
  		    }	
@@ -321,10 +313,10 @@ public class AggregationBolt extends BaseRichBolt {
 		    Integer curr_bottom = bottom.get(id);
 		    
 		    if (curr_bottom == null)
-		    	curr_bottom = activeSessions;
+		    	bottom.put(id,activeSessions);
 		    else {
 		    	if (curr_bottom > activeSessions)
-		    		top.put(id, activeSessions);               //Replace bottom
+		    		bottom.put(id, activeSessions);               //Replace bottom
  		    }		
 		}
 		else if (operation.equals("SUM")) {
@@ -367,9 +359,9 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    Integer curr_top = top.get(id);
 		    
-		    if (curr_top == null)
-		    	curr_top = upTime;
-		    else {
+		    if (curr_top == null){
+		    	top.put(id,upTime);
+		    } else {
 		    	if (curr_top < upTime)
 		    		top.put(id, upTime);               //Replace top
  		    }	
@@ -404,8 +396,6 @@ public class AggregationBolt extends BaseRichBolt {
 		    	curr_temp_sum += temperature;
 		    
 		    sum.put(id, curr_temp_sum);
-		    
-		    average = sum.get(id)/counts.get(id);			
 		}
 		else if (operation.equals("TOP")) {
 		    //Get the router-id contents from the tuple
@@ -423,9 +413,9 @@ public class AggregationBolt extends BaseRichBolt {
 		    
 		    Integer curr_top = top.get(id);
 		    
-		    if (curr_top == null)
-		    	curr_top = temperature;
-		    else {
+		    if (curr_top == null){
+		    	top.put(id,temperature);
+		    } else {
 		    	if (curr_top < temperature)
 		    		top.put(id, temperature);               //Replace top
  		    }	
@@ -447,10 +437,10 @@ public class AggregationBolt extends BaseRichBolt {
 		    Integer curr_bottom = bottom.get(id);
 		    
 		    if (curr_bottom == null)
-		    	curr_bottom = temperature;
+		    	bottom.put(id,temperature);
 		    else {
 		    	if (curr_bottom > temperature)
-		    		top.put(id, temperature);               //Replace bottom
+		    		bottom.put(id, temperature);               //Replace bottom
  		    }	
 		}
 	}
@@ -481,7 +471,7 @@ public class AggregationBolt extends BaseRichBolt {
 	  private final Map<Integer, Integer> sum;
 	  private final Map<Integer, Integer> top;
 	  private final Map<Integer, Integer> bottom;
-	  private Integer average;
+	  private final Map<Integer, Integer> count;
 	  
 	  private final Map<Integer, String> name;
 	  private final Map<Integer, String> site;
@@ -493,12 +483,12 @@ public class AggregationBolt extends BaseRichBolt {
 	  
 	  private final OutputCollector collector;
 	  
-	  public EmitTask(String boltName,Map<Integer, Integer> sum, Map<Integer, Integer> top, Map<Integer, Integer> bottom, Integer average,  Map<Integer, String> name, Map<Integer, String> site, String field, String operation, Integer duration, OutputCollector collector) {
+	  public EmitTask(String boltName,Map<Integer, Integer> sum, Map<Integer, Integer> top, Map<Integer, Integer> bottom, Integer average,  Map<Integer, String> name, Map<Integer, String> site, String field, String operation, Integer duration, Map<Integer, Integer> count, OutputCollector collector) {
 		  
 		  	this.sum = sum;
 		  	this.top = top;
 		  	this.bottom = bottom;
-		  	this.average = average;
+		  	this.count = count;
 		  	
 		  	this.name = name;
 		  	this.site = site;
@@ -521,19 +511,25 @@ public class AggregationBolt extends BaseRichBolt {
 		  if (this.field.equals("cpu") || this.field.equals("ram") || this.field.equals("temperature")) {
 			  
 			  if (this.operation.equals("AVG")) {
-				  Integer average_;								
+				  Map<Integer, Integer> count_snapshot;
+				  Map<Integer, Integer> sum_snapshot;
 				  
-				  synchronized (this.average) {
-					  average_ = this.average;
-					  this.average = 0;
-				  }					  
+				  synchronized (this.count) {
+					  count_snapshot = new HashMap<Integer, Integer>(this.count);
+					  this.count.clear();
+					  
+					  sum_snapshot = new HashMap<Integer, Integer>(this.sum);
+					  this.sum.clear();
+				  }
+		  
 					  
 				  long currentTime = System.currentTimeMillis();
 				  Set<Integer> keys = this.name.keySet();
 				  for (Integer id : keys) {
+					  float avg = sum_snapshot.get(id) / count_snapshot.get(id);
 					  String name_  = this.name.get(id);
 					  String site_  = this.site.get(id);
-					  this.collector.emit(new Values(id, name_, site_, currentTime, average_, this.duration, this.field, this.operation));
+					  this.collector.emit(new Values(id, name_, site_, currentTime, avg, this.duration, this.field, this.operation));
 				  }
 
 			  }
@@ -575,19 +571,24 @@ public class AggregationBolt extends BaseRichBolt {
 		  }
 		  else if (this.field.equals("activeSessions")) {
 			  if (this.operation.equals("AVG")) {
-				  Integer average_;								
+				  Map<Integer, Integer> count_snapshot;
+				  Map<Integer, Integer> sum_snapshot;
 				  
-				  synchronized (this.average) {
-					  average_ = this.average;
-					  this.average = 0;
-				  }					  
+				  synchronized (this.count) {
+					  count_snapshot = new HashMap<Integer, Integer>(this.count);
+					  this.count.clear();
 					  
+					  sum_snapshot = new HashMap<Integer, Integer>(this.sum);
+					  this.sum.clear();
+				  }
+		  
 				  long currentTime = System.currentTimeMillis();
 				  Set<Integer> keys = this.name.keySet();
 				  for (Integer id : keys) {
+					  float avg = sum_snapshot.get(id) / count_snapshot.get(id);
 					  String name_  = this.name.get(id);
 					  String site_  = this.site.get(id);
-					  this.collector.emit(new Values(id, name_, site_, currentTime, average_, this.duration, this.field, this.operation));
+					  this.collector.emit(new Values(id, name_, site_, currentTime, avg, this.duration, this.field, this.operation));
 				  }
 
 			  }
