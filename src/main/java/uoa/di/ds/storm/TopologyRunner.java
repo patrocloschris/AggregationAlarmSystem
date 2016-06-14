@@ -55,9 +55,9 @@ public class TopologyRunner {
 		/* Initialize Event Spout into to topology */
 		LOG.info("Adding Spout =["+Cons.DefaultSpoutName2+"]");
 //		TCPSpout tcpSpout = new TCPSpout(Cons.LOCAL_ADDRS, settings.getSport());
-		RandomEventGeneratorSpout randomGeneratorSpout = new RandomEventGeneratorSpout(10);
+		RandomEventGeneratorSpout randomGeneratorSpout = new RandomEventGeneratorSpout(config.getInt(Cons.TLG_SPOUT_RATE,500));
 
-		builder.setSpout(Cons.DefaultSpoutName2, randomGeneratorSpout,1);
+		builder.setSpout(Cons.DefaultSpoutName2, randomGeneratorSpout,config.getInt(Cons.TLG_SPOUT_PARALLEL,1));
 		
 		/*Open a connection to cassandra to retrieve rules*/
 		ConnectionManager.init(config.getString(Cons.CASSANDRA_HOST),config.getString(Cons.CASSANDRA_CLUSTERNAME,null));

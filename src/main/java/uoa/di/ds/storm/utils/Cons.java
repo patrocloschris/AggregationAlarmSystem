@@ -14,6 +14,9 @@ public class Cons {
 	public static final String TLG_EXEC_RCV_BUF = "topology.executor.receive.buffer.size";
 	public static final String TLG_EXEC_SEND_BUF = "topology.executor.send.buffer.size";
 
+	public static final String TLG_SPOUT_RATE = "topology.spout.generator.rate";
+	public static final String TLG_SPOUT_PARALLEL = "topology.spout.parallelism";
+	
 	public static final String CASSANDRA_HOST = "cassandra.host";
 	public static final String CASSANDRA_PORT = "cassandra.port";
 	public static final String CASSANDRA_R_KEYSPACE = "cassandra.rules.keyspace";
