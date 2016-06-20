@@ -2,17 +2,17 @@
  
  CREATE TABLE aggregation_rules (field text, operation text, duration int, nbolts int, PRIMARY KEY (field,operation));
  
-insert into aggregation_rules(field,operation,duration,nbolts) values ('cpu','AVG',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('cpu','TOP',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('cpu','BOTTOM',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('ram','AVG',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('ram','TOP',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('ram','BOTTOM',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('activeSessions','AVG',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('activeSessions','TOP',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('activeSessions','BOTTOM',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('activeSessions','SUM',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('upTime','TOP',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('temperature','AVG',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('temperature','TOP',300,2);
-insert into aggregation_rules(field,operation,duration,nbolts) values ('temperature','BOTTOM',300,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('cpu','AVG',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('cpu','TOP',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('cpu','BOTTOM',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('ram','AVG',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('ram','TOP',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('ram','BOTTOM',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('activeSessions','AVG',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('activeSessions','TOP',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('activeSessions','BOTTOM',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('activeSessions','SUM',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('upTime','TOP',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('temperature','AVG',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('temperature','TOP',30,2);
+insert into aggregation_rules(field,operation,duration,nbolts) values ('temperature','BOTTOM',30,2);

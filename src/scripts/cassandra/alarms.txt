@@ -1,6 +1,6 @@
 CREATE KEYSPACE alarms2 WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 1};
 CREATE TABLE alarms_meta2 (field text, operation text, rule text, value int, PRIMARY KEY (field,rule));
-CREATE TABLE active_alarms2 (managed_object text, notification_id int, additional_text text, eventtime timeStamp, state text, PRIMARY KEY (managed_object, notification_id));
+CREATE TABLE active_alarms2 (managed_object text, notification_id int, additional_text text, eventtime timeStamp, PRIMARY KEY (managed_object, notification_id));
 
 
 insert into alarms_meta2(field,operation,rule,value) values ('cpu','TOP','>',80);
