@@ -14,6 +14,10 @@ import org.slf4j.LoggerFactory;
 
 import uoa.di.ds.storm.utils.Cons;
 
+/*
+ * That spout constructs a number of random events and send them to a stream. 
+ * After that pauses for a while (~1sec) and re-run
+ * */
 public class RandomEventGeneratorSpout extends BaseRichSpout {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RandomEventGeneratorSpout.class);

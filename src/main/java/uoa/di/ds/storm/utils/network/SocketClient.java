@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/*A simple socket client*/
 public class SocketClient {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SocketClient.class);

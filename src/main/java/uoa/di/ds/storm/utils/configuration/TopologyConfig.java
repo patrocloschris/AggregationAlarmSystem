@@ -41,6 +41,7 @@ public class TopologyConfig {
 	}
 
 	
+	/*construct storm configuration*/
 	public static Config constructStormConfig(Configuration config){
 	    Config stormConfig = new Config();
 	    stormConfig.setDebug(config.getBoolean(Cons.TLG_DBG,true));

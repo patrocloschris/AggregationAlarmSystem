@@ -57,13 +57,16 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 
 	@Override
 	public void execute(Tuple input) {
+		/*for every tuple*/
 		if(batchMode){
+			/*if it's in batch mode collect it*/
 			tupleList.add(input);
 			if(batchSize == tupleList.size()){
 				insertBatchToCassandra( tupleList);
 				tupleList.clear();
 			}
 		} else {
+			/*else insert it into cassandra*/
 			insertToCassandra(input);
 		}
 		_collector.ack(input);
@@ -91,7 +94,7 @@ public class AggregationCassandraBolt extends BaseRichBolt{
 	}
 	
 	private void insertToCassandra(Tuple tuple){
-		
+		/*insert it directly into db*/
 		Statement statement = QueryBuilder.insertInto(constructTableName(tuple.getStringByField(Cons.TUPLE_VAR_FIELD),
 				tuple.getStringByField(Cons.TUPLE_VAR_OPER)))
 		        .value("id",tuple.getIntegerByField(Cons.TUPLE_VAR_ID))

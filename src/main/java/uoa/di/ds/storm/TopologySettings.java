@@ -2,6 +2,9 @@ package uoa.di.ds.storm;
 
 import com.beust.jcommander.Parameter;
 
+/*
+ * Input parameter domain class
+ */
 public class TopologySettings {
 
     @Parameter(names = "--help", help = true)

@@ -56,15 +56,19 @@ public class AlarmsCassandraBolt extends BaseRichBolt{
     	  LOG.info("Preparing bolt....Connection for on DB=[{}]",session.getLoggedKeyspace());
 	}
 
+	
 	@Override
 	public void execute(Tuple input) {
+		/*for every tuple*/
 		if(batchMode){
+			/*if it's in batch mode collect it*/
 			tupleList.add(input);
 			if(batchSize == tupleList.size()){
 				insertBatchToCassandra( tupleList);
 				tupleList.clear();
 			}
 		} else {
+			/*else insert it into cassandra*/
 			insertToCassandra(input);
 		}
 		_collector.ack(input);
@@ -94,6 +98,7 @@ public class AlarmsCassandraBolt extends BaseRichBolt{
 	private void insertToCassandra(Tuple tuple){
 
 		Statement statement = null;
+		/*if is active insert into db*/
 		if(tuple.getValueByField(Cons.TUPLE_VAR_STATE).equals("active")){
 			statement = QueryBuilder.insertInto(table)
 			        .value("managed_object",tuple.getValueByField(Cons.TUPLE_VAR_MO))
@@ -104,6 +109,7 @@ public class AlarmsCassandraBolt extends BaseRichBolt{
 			LOG.info("Insert into DB tuple=[{}]",tuple);
 
 		}else{
+			/*else delete it from db*/
 			session.execute("Delete From "+table+" where managed_object='"+tuple.getValueByField(Cons.TUPLE_VAR_MO)+"' and notification_id="+tuple.getValueByField(Cons.TUPLE_VAR_NOTIF));
 			LOG.info("Insert into DB tuple=[{}]",tuple);
 		}

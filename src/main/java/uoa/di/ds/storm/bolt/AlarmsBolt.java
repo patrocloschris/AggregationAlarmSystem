@@ -41,8 +41,6 @@ public class AlarmsBolt extends BaseRichBolt{
 	private String metaTable;
 	private Map<String , HashSet<Integer>> active_notifs;
 
-//	public static final String CASSANDRA_A_KEYSPACE = "cassandra.alarms.keyspace";
-//	public static final String CASSANDRA_AM_TABLE = "cassandra.alarms.alarms_meta";       // Is that correct?
 
     public AlarmsBolt(String keyspace,String metaTable) {
     	LOG.info("Creating Bolt for Keyspace=[{}]",keyspace);
@@ -66,7 +64,6 @@ public class AlarmsBolt extends BaseRichBolt{
     	  //Read Rules from metadata table
   		  ResultSet results = session.execute("SELECT * FROM " + metaTable);
     	  for (Row row : results) {
-    		//e.g. rule: field = "cpu" / rule=" >" / value= "90"
 			String field = row.getString("field") == null ? "field" : row.getString("field");
 			String operation = row.getString("operation") == null ? "operation" : row.getString("operation");
 			String rule = row.getString("rule") == null ? "rule" : row.getString("rule");
@@ -75,7 +72,8 @@ public class AlarmsBolt extends BaseRichBolt{
 			
 			String alarm_rule_tuple = field+","+operation+","+rule+","+Integer.toString(value);
 			LOG.info("Adding rule=[{}]",alarm_rule_tuple);
-			rulesList.add(alarm_rule_tuple);										//Each rule in the arraylist has the form: field,operation,rule,value
+			rulesList.add(alarm_rule_tuple);										
+			//Each rule in the arraylist has the form: field,operation,rule,value
 		}
 	}
 	
@@ -104,15 +102,19 @@ public class AlarmsBolt extends BaseRichBolt{
 			
 			if (field.equals(input.getStringByField(Cons.TUPLE_VAR_FIELD))) { // Field match
 				if (operation.equals(input.getStringByField(Cons.TUPLE_VAR_OPER))) {
-					
+	
+					/*for every possible operator*/
 					if (rule.equals(">")) {
+						/*if is true*/
 						String tupleValue = input.getValueByField(Cons.TUPLE_VAR_VALUE).toString();
 						if (Float.parseFloat(tupleValue) > Float.parseFloat(value)) {
+							/*generate a new alarm*/
 							Integer notif = generateNotifId(field, operation, rule);
 							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " exceeded allowed limit of "+ value);
 							generateActiveAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
 						}
 						else {
+							/*else close if needed an alarm*/
 							Integer notif = generateNotifId(field, operation, rule);
 							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " is now below limit of "+ value);
 							generateClearAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
@@ -132,28 +134,48 @@ public class AlarmsBolt extends BaseRichBolt{
 							generateClearAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
 						}
 					}
-				/*	else if (rule.equals(">=")) {
-						if (input.getIntegerByField(Cons.TUPLE_VAR_VALUE) >= Integer.parseInt(value))
-							generateActiveAlarm();
-						else
-							generateClearAlarm();
+					else if (rule.equals(">=")) {
+						String tupleValue = input.getValueByField(Cons.TUPLE_VAR_VALUE).toString();
+						if (Float.parseFloat(tupleValue) >= Float.parseFloat(value)) {
+							Integer notif = generateNotifId(field, operation, rule);
+							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " exceeded allowed limit of "+ value);
+							generateActiveAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
+						}
+						else {
+							Integer notif = generateNotifId(field, operation, rule);
+							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " is now below limit of "+ value);
+							generateClearAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
+					
+						}
 					}
 					else if (rule.equals("<=")) {
-						if (input.getIntegerByField(Cons.TUPLE_VAR_VALUE) <= Integer.parseInt(value))
-							generateActiveAlarm();
-						else
-							generateClearAlarm();
+						String tupleValue = input.getValueByField(Cons.TUPLE_VAR_VALUE).toString();
+						if (Float.parseFloat(tupleValue) <= Float.parseFloat(value)) {
+							Integer notif = generateNotifId(field, operation, rule);
+							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " exceeded allowed limit of "+ value);
+							generateActiveAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
+						}
+						else {
+							Integer notif = generateNotifId(field, operation, rule);
+							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " is now below limit of "+ value);
+							generateClearAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
+					
+						}
 					}						
 					else if (rule.equals("==")) {
-						if (input.getIntegerByField(Cons.TUPLE_VAR_VALUE) == Integer.parseInt(value))
-							generateActiveAlarm();
-						else
-							generateClearAlarm();
-					} */
-						
-							   		
-						
+						String tupleValue = input.getValueByField(Cons.TUPLE_VAR_VALUE).toString();
+						if (Float.parseFloat(tupleValue) == Float.parseFloat(value)) {
+							Integer notif = generateNotifId(field, operation, rule);
+							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " exceeded allowed limit of "+ value);
+							generateActiveAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
+						}
+						else {
+							Integer notif = generateNotifId(field, operation, rule);
+							String add_text = new String(field+ " " + operation+"("+tupleValue+")" + " is now below limit of "+ value);
+							generateClearAlarm(input.getStringByField(Cons.TUPLE_VAR_NAME), notif, add_text, input.getLongByField(Cons.TUPLE_VAR_EVENTTIME));
 					
+						}
+					} 
 				}
 			}
 		}
@@ -174,7 +196,7 @@ public class AlarmsBolt extends BaseRichBolt{
 	private void generateActiveAlarm(String mo, Integer notif_id, String add_text, Long eventtime) {
 		
 		HashSet<Integer> s = active_notifs.get(mo);
-		
+		/*create a new active alarm tuple*/
 		if (s == null) {
 			HashSet<Integer> notifs = new HashSet<Integer>();
 			notifs.add(notif_id);
@@ -188,7 +210,6 @@ public class AlarmsBolt extends BaseRichBolt{
 				LOG.info("Active Alarm for mo=[{}] with notificationID=[{}] and text=[{}]",mo,notif_id,add_text);
 				this.collector.emit(new Values(mo, notif_id, add_text, eventtime, "active"));
 			}
-			//If set of active notifs for this mo contains the specified id do nothing!
 		}
 	}
 	

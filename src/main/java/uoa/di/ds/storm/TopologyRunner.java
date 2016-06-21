@@ -91,17 +91,17 @@ public class TopologyRunner {
 			declarer.shuffleGrouping(stream);
 		}
 		
-
+		/*set AlarmBolt to read from all Aggregation Streams*/
 		AlarmsBolt alarmsBolt = new AlarmsBolt(config.getString(Cons.CASSANDRA_L_KEYSPACE),config.getString(Cons.CASSANDRA_L_META));
 		alarmsBolt.withHostName(config.getString(Cons.CASSANDRA_HOST));
 		alarmsBolt.withClusterName(config.getString(Cons.CASSANDRA_CLUSTERNAME));
-
 		LOG.info("Adding Alarms Bolt");
 		BoltDeclarer alarmsDeclarer = builder.setBolt(Cons.DefaultAlarmsBoltName,alarmsBolt,config.getInt(Cons.CASSANDRA_L_META_BOLT_PARRALLEL,2));
 		for(String stream : streams){
 			alarmsDeclarer.fieldsGrouping(stream,new Fields(Cons.TUPLE_VAR_ID));
 		}
 
+		/*And finally connect Cassandra Alarms Bolt*/
 		AlarmsCassandraBolt alarmsCassandraBolt = new AlarmsCassandraBolt(config.getString(Cons.CASSANDRA_L_KEYSPACE),config.getString(Cons.CASSANDRA_L_ACTIVE));
 		alarmsCassandraBolt.withHostName(config.getString(Cons.CASSANDRA_HOST));
 		alarmsCassandraBolt.withClusterName(config.getString(Cons.CASSANDRA_CLUSTERNAME));
@@ -113,6 +113,7 @@ public class TopologyRunner {
 		LOG.info("Starting topology deployment...");
 		LOG.info("Local mode set to: " + config.getBoolean(Cons.TLG_LOCAL));
 
+		/*Prepare and execute topology*/
 		if (config.getBoolean(Cons.TLG_LOCAL)) {
 			LocalCluster cluster = new LocalCluster();
 			cluster.submitTopology(topologyName, stormConfig, builder.createTopology());
