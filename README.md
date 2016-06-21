@@ -37,7 +37,6 @@ A good start can be to send 500 events/sec/node (500 events = ~ 2-4mb) and will 
 The following metrics is our target it the end of the implementation
 
 * How the process time of an event is influenced for several data volumes (previous scales), also to evaluate the overall system performance.
-* The processing time if the events has a greater size than usual (ie on how the system is affected different throughtputs)
 * How does the processing speed is affected if one or more nodes dropped.
 * The CRUD operations speed if we dump one by one the events or if we dump them in batch mode in our DB.
 * If a node does not have such a good performance (as HW) then that affected the rest of our Pipeline.
